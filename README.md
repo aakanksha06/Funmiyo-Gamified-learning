@@ -176,15 +176,14 @@ This project is licensed under the MIT License - see LICENSE file for details.
 
 ## 👨‍💻 Author
 
-**Shrav Nikale**
+**Shravni kale**
 - GitHub: [@shravnikale2](https://github.com/shravnikale2)
 
 ## 📞 Support
 
 For issues, questions, or suggestions:
 - Open an issue on GitHub
-- Email: hello@funmiyo.com
-
+- Email: Shravnikale7@gmail.com
 ---
 
 **Happy Learning! 🎓✨**
