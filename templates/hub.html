@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Funmiyo SkillQuest — Game Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/global.css">
+<style>
+body{background:#0d0f2b;overflow-x:hidden;}
+.bg-blobs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);}
+/* Hero */
+.hero{text-align:center;padding:48px 20px 36px;position:relative;z-index:10;}
+.hero-avatar{font-size:4rem;display:block;margin-bottom:12px;animation:bounce 2s ease-in-out infinite;}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.hero-title{font-family:'Fredoka One',cursive;font-size:clamp(1.8rem,5vw,3rem);
+  background:linear-gradient(135deg,#ff6b35,#ffd700,#4ecdc4);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:6px;}
+.hero-sub{font-size:1rem;color:rgba(255,255,255,.5);font-weight:600;}
+.hero-grade{display:inline-block;margin-top:10px;padding:6px 18px;
+  background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.3);
+  border-radius:50px;font-family:'Fredoka One',cursive;font-size:.9rem;color:#ffd700;}
+/* Stats bar */
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;
+  max-width:800px;margin:0 auto 40px;padding:0 20px;position:relative;z-index:10;}
+.stat-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
+  border-radius:18px;padding:18px 16px;text-align:center;backdrop-filter:blur(16px);
+  transition:all .3s;}
+.stat-card:hover{transform:translateY(-4px);border-color:rgba(255,215,0,.3);}
+.stat-icon{font-size:1.8rem;display:block;margin-bottom:6px;}
+.stat-val{font-family:'Fredoka One',cursive;font-size:1.6rem;color:#ffd700;}
+.stat-lbl{font-size:.68rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-top:3px;}
+/* Games grid */
+.games-section{max-width:900px;margin:0 auto;padding:0 20px 60px;position:relative;z-index:10;}
+.section-title{font-family:'Fredoka One',cursive;font-size:1.4rem;color:rgba(255,255,255,.7);
+  margin-bottom:20px;display:flex;align-items:center;gap:10px;}
+.games-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;}
+.game-card{
+  background:rgba(255,255,255,.06);
+  border:2px solid rgba(255,255,255,.1);
+  border-radius:24px;padding:28px 24px;
+  text-decoration:none;color:inherit;
+  display:block;position:relative;overflow:hidden;
+  transition:all .35s cubic-bezier(0.16,1,0.3,1);
+  cursor:pointer;
+}
+.game-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .35s;pointer-events:none;
+  background:var(--card-glow);}
+.game-card:hover{transform:translateY(-8px) scale(1.02);border-color:var(--card-color);
+  box-shadow:0 20px 60px rgba(0,0,0,.4),0 0 0 1px var(--card-color);}
+.game-card:hover::before{opacity:1;}
+
+.game-card.bubble {--card-color:#4ecdc4;--card-glow:linear-gradient(135deg,rgba(78,205,196,.06),transparent);}
+.game-card.blaster{--card-color:#ff6b35;--card-glow:linear-gradient(135deg,rgba(255,107,53,.06),transparent);}
+.game-card.sprint {--card-color:#00e676;--card-glow:linear-gradient(135deg,rgba(0,230,118,.06),transparent);}
+.game-card.boss   {--card-color:#a855f7;--card-glow:linear-gradient(135deg,rgba(168,85,247,.06),transparent);}
+
+.game-emoji{font-size:3.5rem;display:block;margin-bottom:12px;filter:drop-shadow(0 0 12px var(--card-color));}
+.game-badge{display:inline-block;padding:4px 12px;border-radius:50px;font-size:.68rem;font-weight:800;
+  letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;
+  background:rgba(255,255,255,.08);color:var(--card-color);border:1px solid var(--card-color);}
+.game-title{font-family:'Fredoka One',cursive;font-size:1.4rem;margin-bottom:8px;color:#fff;}
+.game-desc{font-size:.88rem;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:16px;}
+.game-tags{display:flex;gap:6px;flex-wrap:wrap;}
+.game-tag{padding:3px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  border-radius:50px;font-size:.68rem;color:rgba(255,255,255,.4);}
+.game-arrow{position:absolute;right:20px;bottom:20px;width:42px;height:42px;
+  border-radius:50%;border:2px solid var(--card-color);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;color:var(--card-color);transition:all .3s;}
+.game-card:hover .game-arrow{background:var(--card-color);color:#0d0f2b;transform:translate(2px,-2px);}
+
+/* Leaderboard mini */
+.lb-mini{max-width:900px;margin:0 auto 40px;padding:0 20px;position:relative;z-index:10;}
+.lb-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:22px;backdrop-filter:blur(16px);}
+.lb-block+.lb-block{margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,.08);}
+.lb-title{font-family:'Fredoka One',cursive;font-size:1rem;color:#ffd700;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.lb-title span{font-family:'Nunito',sans-serif;font-size:.75rem;color:rgba(255,255,255,.42);font-weight:800;}
+.lb-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.lb-item:last-child{border-bottom:none;}
+.lb-rank{font-family:'Fredoka One',cursive;font-size:1rem;width:28px;color:rgba(255,255,255,.3);}
+.lb-rank.gold{color:#ffd700;} .lb-rank.silver{color:#c0c0c0;} .lb-rank.bronze{color:#cd7f32;}
+.lb-av{font-size:1.5rem;width:36px;}
+.lb-name{flex:1;font-weight:700;font-size:.9rem;}
+.lb-grade{font-size:.72rem;color:rgba(255,255,255,.4);background:rgba(255,255,255,.06);
+  padding:2px 8px;border-radius:50px;}
+.lb-score{font-family:'Fredoka One',cursive;font-size:1rem;color:#ffd700;}
+.lb-stars{font-size:.85rem;}
+@media(max-width:640px){.games-grid{grid-template-columns:1fr;}.stats-bar{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<div class="bg-blobs">
+  <div class="blob" style="width:500px;height:500px;background:rgba(255,107,53,.07);top:-150px;left:-150px;"></div>
+  <div class="blob" style="width:400px;height:400px;background:rgba(78,205,196,.07);bottom:-100px;right:-100px;"></div>
+  <div class="blob" style="width:300px;height:300px;background:rgba(168,85,247,.06);top:40%;left:50%;transform:translate(-50%,-50%);"></div>
+</div>
+
+<nav class="main-nav">
+  <a href="/student/hub" class="nav-brand">
+    <span class="nav-logo-img">🎮</span>
+    <div class="nav-brand-text">
+      <span class="nav-brand-name">Funmiyo SkillQuest</span>
+      <span class="nav-brand-sub">Gamified Math for Young Minds</span>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="/student/hub" class="nav-link active">🎮 Games</a>
+    <a href="/student/dashboard" class="nav-link">📊 My Progress</a>
+    <a href="/logout" class="nav-link">👋 Bye!</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <span class="hero-avatar" id="heroAvatar">⭐</span>
+  <div class="hero-title">Hey, {{ student_name }}! 👋</div>
+  <div class="hero-sub">Ready for a math adventure today?</div>
+  <div class="hero-grade" id="gradeLabel">{{ grade }}</div>
+</div>
+
+<div class="stats-bar" id="statsBar">
+  <div class="stat-card"><span class="stat-icon">🎮</span><div class="stat-val" id="statSessions">—</div><div class="stat-lbl">Games Played</div></div>
+  <div class="stat-card"><span class="stat-icon">⭐</span><div class="stat-val" id="statStars">—</div><div class="stat-lbl">Stars Earned</div></div>
+  <div class="stat-card"><span class="stat-icon">🎯</span><div class="stat-val" id="statAcc">—</div><div class="stat-lbl">Accuracy</div></div>
+  <div class="stat-card"><span class="stat-icon">🏆</span><div class="stat-val" id="statScore">—</div><div class="stat-lbl">Total Score</div></div>
+</div>
+
+<div class="games-section">
+  <div class="section-title">🎯 Choose a Game!</div>
+  <div class="games-grid">
+    <a href="/game/bubble" class="game-card bubble">
+      <span class="game-emoji">🫧</span>
+      <div class="game-badge">Bubble Pop</div>
+      <div class="game-title">Bubble Math!</div>
+      <div class="game-desc">Shoot bubbles and pop number groups that add up to the target. Watch out for bouncing balls!</div>
+      <div class="game-tags"><span class="game-tag">Addition</span><span class="game-tag">Aim & Shoot</span><span class="game-tag">Combos</span></div>
+      <div class="game-arrow">→</div>
+    </a>
+    <a href="/game/blaster" class="game-card blaster">
+      <span class="game-emoji">🚀</span>
+      <div class="game-badge">Space Blaster</div>
+      <div class="game-title">Math Blaster!</div>
+      <div class="game-desc">Aliens are coming! Solve the math equation and blast the correct answer before they reach your spaceship!</div>
+      <div class="game-tags"><span class="game-tag">Quick Math</span><span class="game-tag">Space</span><span class="game-tag">Waves</span></div>
+      <div class="game-arrow">→</div>
+    </a>
+    <a href="/game/sprint" class="game-card sprint">
+      <span class="game-emoji">🏎️</span>
+      <div class="game-badge">Race Game</div>
+      <div class="game-title">Math Sprint!</div>
+      <div class="game-desc">Race your car against computer cars! Answer math questions to zoom ahead. Wrong answer = slow down!</div>
+      <div class="game-tags"><span class="game-tag">Racing</span><span class="game-tag">Speed</span><span class="game-tag">Fun!</span></div>
+      <div class="game-arrow">→</div>
+    </a>
+    <a href="/game/boss" class="game-card boss">
+      <span class="game-emoji">🐉</span>
+      <div class="game-badge">Boss Battle</div>
+      <div class="game-title">Math Boss!</div>
+      <div class="game-desc">A scary math monster is attacking! Solve the number puzzles to fight back and defeat the boss!</div>
+      <div class="game-tags"><span class="game-tag">Battle</span><span class="game-tag">Strategy</span><span class="game-tag">Epic!</span></div>
+      <div class="game-arrow">→</div>
+    </a>
+  </div>
+</div>
+
+<div class="lb-mini">
+  <div class="section-title">🏆 Leaderboard</div>
+  <div class="lb-card">
+    <div id="lbList"><div style="text-align:center;color:rgba(255,255,255,.3);padding:20px">Loading...</div></div>
+  </div>
+</div>
+
+<script>
+const GRADE_AVATARS = {'⭐':'star','🚀':'rocket','🦄':'unicorn','🐉':'dragon','🧙':'wizard','🦊':'fox','🐼':'panda','🦁':'lion'};
+const avatar = '{{ avatar }}';
+// Reverse lookup: find emoji from avatar string
+const emojiMap = Object.fromEntries(Object.entries(GRADE_AVATARS).map(([e,n])=>[n,e]));
+document.getElementById('heroAvatar').textContent = emojiMap[avatar] || '⭐';
+
+async function loadStats(){
+  try{
+    const r=await fetch('/api/student/overview');
+    const d=await r.json();
+    const s=d.student||{};
+    document.getElementById('statSessions').textContent=s.total_sessions||0;
+    document.getElementById('statStars').textContent=(s.total_stars||0)+'⭐';
+    document.getElementById('statAcc').textContent=((s.avg_accuracy||0).toFixed(0))+'%';
+    document.getElementById('statScore').textContent=(s.total_score||0).toLocaleString();
+  }catch(e){}
+}
+
+async function loadLeaderboard(){
+  try{
+    const r=await fetch('/api/leaderboard');
+    const d=await r.json();
+    const gradeLb=d.grade_leaderboard||[];
+    const allLb=d.all_leaderboard||d.leaderboard||[];
+    const medals=['🥇','🥈','🥉'];
+    const emojiByName={star:'⭐',rocket:'🚀',unicorn:'🦄',dragon:'🐉',wizard:'🧙',fox:'🦊',panda:'🐼',lion:'🦁'};
+    const rankCls=['gold','silver','bronze'];
+    const renderRows=(rows,empty)=>rows.slice(0,8).map((r,i)=>`
+      <div class="lb-item">
+        <div class="lb-rank ${rankCls[i]||''}">${i<3?medals[i]:i+1}</div>
+        <div class="lb-av">${emojiByName[r.avatar]||'⭐'}</div>
+        <div class="lb-name">${r.full_name||'—'} <span class="lb-grade">${r.grade||''}</span></div>
+        <div class="lb-score">${(r.total_score||0).toLocaleString()}</div>
+        <div class="lb-stars">${'⭐'.repeat(Math.min(r.total_stars||0,5))}</div>
+      </div>`).join('')||`<div style="text-align:center;color:rgba(255,255,255,.3);padding:16px">${empty}</div>`;
+    document.getElementById('lbList').innerHTML=`
+      <div class="lb-block">
+        <div class="lb-title">Your Grade Leaders <span>${d.grade||document.getElementById('gradeLabel').textContent}</span></div>
+        ${renderRows(gradeLb,'Be the first in your grade! 🌟')}
+      </div>
+      <div class="lb-block">
+        <div class="lb-title">All Grade Leaders <span>KG - Grade 5</span></div>
+        ${renderRows(allLb,'Be the first on the board! 🌟')}
+      </div>`;
+  }catch(e){}
+}
+
+loadStats(); loadLeaderboard();
+</script>
+</body>
+</html>

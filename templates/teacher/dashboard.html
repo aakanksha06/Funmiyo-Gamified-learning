@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Funmiyo SkillQuest - Teacher Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/global.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+body{background:#0d0f2b;color:#fff;font-family:'Nunito',sans-serif;}
+.nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:64px;background:rgba(2,8,24,.97);border-bottom:1px solid rgba(0,200,255,.15);backdrop-filter:blur(20px);}
+.nav-logo{font-family:'Fredoka One',cursive;font-size:1.1rem;font-weight:900;background:linear-gradient(135deg,#ff6b35,#ffd700,#4ecdc4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none;}
+.nav-links{display:flex;gap:8px;align-items:center;}
+.nav-link{padding:7px 15px;border:1px solid transparent;border-radius:8px;color:#6080a0;text-decoration:none;font-size:.78rem;letter-spacing:1px;transition:all .3s;}
+.nav-link:hover,.nav-link.active{border-color:rgba(0,200,255,.35);color:#00c8ff;background:rgba(0,200,255,.06);}
+.nav-user{font-size:.8rem;color:#6080a0;} .nav-user span{color:#00c8ff;font-weight:600;}
+.page{max-width:1350px;margin:0 auto;padding:28px 32px 60px;position:relative;z-index:10;}
+.grid-overlay{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(0,200,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,255,.025) 1px,transparent 1px);background-size:60px 60px;}
+
+/* Tab bar */
+.tab-bar{display:flex;gap:4px;margin-bottom:28px;background:rgba(0,200,255,.04);border:1px solid rgba(0,200,255,.1);border-radius:12px;padding:4px;}
+.tab{padding:10px 20px;border-radius:9px;font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border:none;background:transparent;color:#6080a0;transition:all .3s;}
+.tab.active{background:rgba(0,200,255,.12);color:#00c8ff;}
+.tab:hover:not(.active){color:#a0c0e0;}
+.tab-panel{display:none;} .tab-panel.active{display:block;}
+
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.stat-card{background:rgba(10,20,60,.65);border:1px solid rgba(0,200,255,.12);border-radius:16px;padding:18px 20px;backdrop-filter:blur(20px);transition:all .3s;}
+.stat-card:hover{border-color:rgba(0,200,255,.3);transform:translateY(-3px);}
+.stat-icon{font-size:1.5rem;margin-bottom:8px;display:block;}
+.stat-val{font-family:'Orbitron',sans-serif;font-size:1.55rem;font-weight:700;color:#fff;}
+.stat-lbl{font-size:.66rem;color:#6080a0;letter-spacing:1px;text-transform:uppercase;margin-top:5px;}
+
+/* Charts */
+.charts-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+.chart-card{background:rgba(10,20,60,.65);border:1px solid rgba(0,200,255,.12);border-radius:18px;padding:20px 22px;backdrop-filter:blur(20px);}
+.chart-title{font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:3px;color:#6080a0;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.chart-title .dot{width:7px;height:7px;border-radius:50%;background:var(--c,#00c8ff);}
+.chart-wrap{position:relative;height:210px;}
+
+/* Section header */
+.sec-hdr{display:flex;align-items:center;gap:12px;margin-bottom:18px;margin-top:8px;}
+.sec-ttl{font-family:'Orbitron',sans-serif;font-size:.68rem;letter-spacing:4px;color:#6080a0;text-transform:uppercase;}
+.sec-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(0,200,255,.18),transparent);}
+
+/* Student table */
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{font-family:'Orbitron',sans-serif;font-size:.58rem;letter-spacing:2px;color:#4060a0;text-transform:uppercase;padding:9px 12px;border-bottom:1px solid rgba(0,200,255,.08);text-align:left;}
+.tbl td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.03);font-size:.84rem;vertical-align:middle;}
+.tbl tr:hover td{background:rgba(0,200,255,.03);}
+.tbl-name{font-weight:600;color:#e0f0ff;display:flex;align-items:center;gap:10px;}
+.tbl-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,rgba(0,200,255,.2),rgba(124,58,237,.2));border:1px solid rgba(0,200,255,.2);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:.75rem;font-weight:700;color:#00c8ff;flex-shrink:0;}
+
+/* Group badges */
+.gbadge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.65rem;letter-spacing:1px;font-weight:600;text-transform:uppercase;}
+.g-adv{background:rgba(0,255,136,.1);color:#00ff88;border:1px solid rgba(0,255,136,.3);}
+.g-int{background:rgba(0,200,255,.1);color:#00c8ff;border:1px solid rgba(0,200,255,.3);}
+.g-slo{background:rgba(255,204,0,.1);color:#ffcc00;border:1px solid rgba(255,204,0,.3);}
+.g-fas{background:rgba(255,102,0,.1);color:#ff6600;border:1px solid rgba(255,102,0,.3);}
+.g-nee{background:rgba(255,64,96,.1);color:#ff4060;border:1px solid rgba(255,64,96,.3);}
+.g-unc{background:rgba(100,128,160,.1);color:#6080a0;border:1px solid rgba(100,128,160,.3);}
+
+/* Cards for top/weak */
+.rank-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+.rank-card{background:rgba(10,20,60,.65);border:1px solid rgba(0,200,255,.1);border-radius:16px;padding:18px 20px;backdrop-filter:blur(20px);}
+.rank-card-title{font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:3px;color:#6080a0;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.rank-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.rank-item:last-child{border-bottom:none;}
+.rank-num{font-family:'Orbitron',sans-serif;font-size:.85rem;font-weight:700;color:#6080a0;width:22px;}
+.rank-info{flex:1;}
+.rank-name{font-size:.88rem;font-weight:600;color:#e0f0ff;}
+.rank-sub{font-size:.7rem;color:#6080a0;margin-top:2px;}
+.rank-val{font-family:'Orbitron',sans-serif;font-size:.95rem;font-weight:700;color:#00c8ff;}
+
+/* Note form */
+.note-form{display:flex;flex-direction:column;gap:12px;}
+.note-select{width:100%;background:rgba(0,200,255,.05);border:1px solid rgba(0,200,255,.18);border-radius:10px;padding:11px 14px;color:#e0f0ff;font-family:'Exo 2',sans-serif;font-size:.9rem;outline:none;}
+.note-textarea{width:100%;background:rgba(0,200,255,.05);border:1px solid rgba(0,200,255,.18);border-radius:10px;padding:12px 14px;color:#e0f0ff;font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;resize:vertical;min-height:90px;}
+.note-select:focus,.note-textarea:focus{border-color:#00c8ff;box-shadow:0 0 0 3px rgba(0,200,255,.1);}
+.btn-sm{padding:10px 22px;border-radius:10px;font-family:'Orbitron',sans-serif;font-size:.68rem;letter-spacing:2px;cursor:pointer;border:none;transition:all .3s;}
+.btn-primary{background:linear-gradient(135deg,#00c8ff,#7c3aed);color:#fff;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,200,255,.2);}
+.btn-danger{background:rgba(255,64,96,.12);border:1px solid rgba(255,64,96,.3);color:#ff4060;}
+.btn-danger:hover{background:rgba(255,64,96,.2);}
+
+.note-item{padding:12px 16px;background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.15);border-radius:10px;margin-bottom:8px;}
+.note-text{font-size:.85rem;color:#c4b5fd;line-height:1.5;}
+.note-meta{font-size:.68rem;color:#6080a0;margin-top:5px;}
+
+/* Announce form */
+.ann-form{display:flex;flex-direction:column;gap:12px;}
+.ann-input{width:100%;background:rgba(0,200,255,.05);border:1px solid rgba(0,200,255,.18);border-radius:10px;padding:11px 14px;color:#e0f0ff;font-family:'Exo 2',sans-serif;font-size:.9rem;outline:none;}
+.ann-input:focus{border-color:#00c8ff;box-shadow:0 0 0 3px rgba(0,200,255,.1);}
+
+/* Add student form */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-field{display:flex;flex-direction:column;gap:6px;}
+.form-label{font-size:.68rem;color:#6080a0;letter-spacing:2px;text-transform:uppercase;}
+.form-input{background:rgba(0,200,255,.05);border:1px solid rgba(0,200,255,.18);border-radius:10px;padding:11px 14px;color:#e0f0ff;font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;}
+.form-input:focus{border-color:#00c8ff;box-shadow:0 0 0 3px rgba(0,200,255,.1);}
+.form-input option{background:#020818;}
+
+.success-msg{color:#00ff88;font-size:.82rem;padding:10px 14px;background:rgba(0,255,136,.07);border:1px solid rgba(0,255,136,.2);border-radius:8px;display:none;margin-top:8px;}
+.error-msg{color:#ff4060;font-size:.82rem;padding:10px 14px;background:rgba(255,64,96,.07);border:1px solid rgba(255,64,96,.2);border-radius:8px;display:none;margin-top:8px;}
+
+.spin{display:flex;align-items:center;justify-content:center;padding:50px;font-family:'Orbitron',sans-serif;font-size:.75rem;letter-spacing:3px;color:#4060a0;}
+.spinner{width:28px;height:28px;border:2px solid rgba(0,200,255,.1);border-top-color:#00c8ff;border-radius:50%;animation:spin .8s linear infinite;margin-right:12px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:1024px){.stats-row{grid-template-columns:repeat(2,1fr);}.charts-2,.rank-grid{grid-template-columns:1fr;}.form-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="grid-overlay"></div>
+<nav class="nav">
+  <a href="/teacher/dashboard" class="nav-logo">FUNMIYO SKILLQUEST</a>
+  <div class="nav-links">
+    <a href="/teacher/dashboard" class="nav-link active">📊 Dashboard</a>
+    <span class="nav-user">Teacher: <span>{{ full_name }}</span></span>
+    <a href="/logout" class="nav-link">Logout</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('overview')">📊 Overview</button>
+    <button class="tab" onclick="switchTab('students')">👨‍🎓 Students</button>
+    <button class="tab" onclick="switchTab('analytics')">📈 Analytics</button>
+    <button class="tab" onclick="switchTab('notes')">📝 Notes</button>
+    <button class="tab" onclick="switchTab('manage')">⚙️ Manage</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="tab-panel active" id="tab-overview">
+    <div id="overviewContent"><div class="spin"><div class="spinner"></div>Loading...</div></div>
+  </div>
+
+  <!-- STUDENTS -->
+  <div class="tab-panel" id="tab-students">
+    <div id="studentsContent"><div class="spin"><div class="spinner"></div>Loading...</div></div>
+  </div>
+
+  <!-- ANALYTICS -->
+  <div class="tab-panel" id="tab-analytics">
+    <div id="analyticsContent"><div class="spin"><div class="spinner"></div>Loading...</div></div>
+  </div>
+
+  <!-- NOTES -->
+  <div class="tab-panel" id="tab-notes">
+    <div id="notesContent"><div class="spin"><div class="spinner"></div>Loading...</div></div>
+  </div>
+
+  <!-- MANAGE -->
+  <div class="tab-panel" id="tab-manage">
+    <div id="manageContent"><div class="spin"><div class="spinner"></div>Loading...</div></div>
+  </div>
+</div>
+
+{% raw %}<script>
+Chart.defaults.color='#6080a0';Chart.defaults.font.family="'Nunito',sans-serif";Chart.defaults.borderColor='rgba(0,200,255,.06)';
+let data=null; let charts={};
+function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+function esc(s){return(s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function pct(v){return v!=null?Math.round(v)+'%':'—';}
+function num(v){return Number(v||0).toLocaleString();}
+function fmtD(d){if(!d)return'—';try{return new Date(d).toLocaleDateString('en-IN',{month:'short',day:'numeric'});}catch(e){return d;}}
+function tryJ(s,d){try{return typeof s==='string'?JSON.parse(s):s||d;}catch(e){return d;}}
+
+const GMAP={'Advanced':'g-adv','Intermediate':'g-int','Slow but Accurate':'g-slo',
+            'Fast but Error-Prone':'g-fas','Needs Support':'g-nee','Unclassified':'g-unc'};
+
+async function loadData(){
+  try{const r=await fetch('/api/teacher/overview');data=await r.json();}
+  catch(e){data={summary:{},students:[],class_trend:[],groups:[],recent_sessions:[],top_students:[],weak_students:[],notes:[]};}
+  renderOverview();renderStudents();renderAnalytics();renderNotes();renderManage();
+}
+
+function switchTab(name){
+  const tabs=['overview','students','analytics','notes','manage'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',tabs[i]===name));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+/* ── OVERVIEW ── */
+function renderOverview(){
+  const s=data.summary||{};
+  const top=data.top_students||[]; const weak=data.weak_students||[];
+  const trend=data.class_trend||[];
+  document.getElementById('overviewContent').innerHTML=`
+    <div class="stats-row">
+      <div class="stat-card"><span class="stat-icon">👨‍🎓</span><div class="stat-val">${s.total_students||0}</div><div class="stat-lbl">My Students</div></div>
+      <div class="stat-card"><span class="stat-icon">🎮</span><div class="stat-val">${s.total_sessions||0}</div><div class="stat-lbl">Total Sessions</div></div>
+      <div class="stat-card"><span class="stat-icon">🎯</span><div class="stat-val">${pct(s.avg_class_accuracy||0)}</div><div class="stat-lbl">Class Avg Accuracy</div></div>
+      <div class="stat-card"><span class="stat-icon">📚</span><div class="stat-val">${(s.grades||[]).length}</div><div class="stat-lbl">Grades Assigned</div></div>
+    </div>
+
+    <div class="charts-2">
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#00c8ff"></span>Class Accuracy Trend</div>
+        <div class="chart-wrap"><canvas id="classTrendChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#a855f7"></span>Student Group Distribution</div>
+        <div class="chart-wrap"><canvas id="groupChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="rank-grid">
+      <div class="rank-card">
+        <div class="rank-card-title"><span>🏆</span> Top Performers</div>
+        ${top.map((s,i)=>`<div class="rank-item">
+          <div class="rank-num">${i+1}</div>
+          <div class="tbl-avatar">${(s.full_name||'?')[0]}</div>
+          <div class="rank-info"><div class="rank-name">${esc(s.full_name)}</div>
+            <div class="rank-sub">${esc(s.roll_no)} · ${groupBadge(s.group_label)}</div></div>
+          <div class="rank-val">${num(s.total_score||0)}</div>
+        </div>`).join('')||'<div style="color:#6080a0;padding:10px">No data yet.</div>'}
+      </div>
+      <div class="rank-card">
+        <div class="rank-card-title"><span>📚</span> Needs Attention</div>
+        ${weak.map((s,i)=>`<div class="rank-item">
+          <div class="rank-num">${i+1}</div>
+          <div class="tbl-avatar" style="border-color:rgba(255,64,96,.3);color:#ff4060">${(s.full_name||'?')[0]}</div>
+          <div class="rank-info"><div class="rank-name">${esc(s.full_name)}</div>
+            <div class="rank-sub">${esc(s.roll_no)} · ${groupBadge(s.group_label)}</div></div>
+          <div class="rank-val" style="color:#ff4060">${pct(s.avg_accuracy||0)}</div>
+        </div>`).join('')||'<div style="color:#6080a0;padding:10px">No data yet.</div>'}
+      </div>
+    </div>`;
+
+  // Class trend chart
+  const tl=trend.map(t=>t.date?t.date.slice(5):'');
+  const ta=trend.map(t=>Math.round(t.avg_acc||0));
+  dc('classTrend');charts['classTrend']=new Chart(document.getElementById('classTrendChart'),{
+    type:'line',data:{labels:tl.length?tl:['—'],datasets:[{label:'Avg Accuracy %',data:ta.length?ta:[0],
+      borderColor:'#00c8ff',backgroundColor:'rgba(0,200,255,.08)',tension:.4,fill:true,pointRadius:3,borderWidth:2}]},
+    options:lineOpts(0,100)});
+
+  // Group donut
+  const groups=data.groups||[];
+  const gcol={'Advanced':'rgba(0,255,136,.7)','Intermediate':'rgba(0,200,255,.7)',
+    'Slow but Accurate':'rgba(255,204,0,.7)','Fast but Error-Prone':'rgba(255,102,0,.7)',
+    'Needs Support':'rgba(255,64,96,.7)','Unclassified':'rgba(100,128,160,.6)'};
+  dc('group');charts['group']=new Chart(document.getElementById('groupChart'),{
+    type:'doughnut',data:{labels:groups.map(g=>g.group_label||'Unclassified'),
+      datasets:[{data:groups.map(g=>g.cnt),
+        backgroundColor:groups.map(g=>gcol[g.group_label]||'rgba(100,128,160,.6)'),
+        borderColor:'rgba(255,255,255,.06)',borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{
+      legend:{position:'right',labels:{color:'#6080a0',padding:10,usePointStyle:true,font:{size:11}}},
+      tooltip:{backgroundColor:'rgba(2,8,24,.9)',borderColor:'rgba(0,200,255,.2)',borderWidth:1}}}});
+}
+
+/* ── STUDENTS ── */
+function renderStudents(){
+  const students=data.students||[];
+  document.getElementById('studentsContent').innerHTML=`
+    <div class="sec-hdr"><div class="sec-ttl">All Students</div><div class="sec-line"></div>
+      <span style="font-size:.72rem;color:#6080a0">${students.length} total</span>
+    </div>
+    <div class="chart-card" style="overflow-x:auto;">
+      <table class="tbl"><thead><tr>
+        <th>Student</th><th>Roll No</th><th>Grade</th><th>AI Group</th>
+        <th>Score</th><th>Accuracy</th><th>Sessions</th><th>Rec. Difficulty</th>
+      </tr></thead><tbody>
+      ${students.map(s=>`<tr>
+        <td><div class="tbl-name"><div class="tbl-avatar">${(s.full_name||'?')[0]}</div>${esc(s.full_name)}</div></td>
+        <td style="color:#6080a0;font-family:'Orbitron',sans-serif;font-size:.8rem">${esc(s.roll_no)}</td>
+        <td style="color:#6080a0">${esc(s.grade)} ${esc(s.section)}</td>
+        <td>${groupBadge(s.ai_group||s.group_label)}</td>
+        <td style="font-family:'Orbitron',sans-serif;font-weight:700;color:#00c8ff">${num(s.total_score||0)}</td>
+        <td style="color:#00ff88">${pct(s.avg_accuracy||0)}</td>
+        <td style="color:#a0c0e0">${s.total_sessions||0}</td>
+        <td style="color:${{easy:'#00ff88',medium:'#ffcc00',hard:'#ff4060'}[s.recommended_difficulty]||'#6080a0'}">${(s.recommended_difficulty||'—').toUpperCase()}</td>
+      </tr>`).join('')||'<tr><td colspan="8" style="text-align:center;color:#6080a0;padding:30px">No students assigned yet.</td></tr>'}
+      </tbody></table>
+    </div>`;
+}
+
+/* ── ANALYTICS ── */
+function renderAnalytics(){
+  const sessions=data.recent_sessions||[];
+  const students=data.students||[];
+  document.getElementById('analyticsContent').innerHTML=`
+    <div class="charts-2">
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#ff6600"></span>Top Scores by Student</div>
+        <div class="chart-wrap"><canvas id="topScoreChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#00ff88"></span>Accuracy by Student</div>
+        <div class="chart-wrap"><canvas id="accByStudentChart"></canvas></div>
+      </div>
+    </div>
+    <div class="sec-hdr"><div class="sec-ttl">Recent Activity</div><div class="sec-line"></div></div>
+    <div class="chart-card" style="overflow-x:auto;">
+      <table class="tbl"><thead><tr>
+        <th>Student</th><th>Game</th><th>Date</th><th>Score</th><th>Accuracy</th><th>Difficulty</th><th>Combo</th>
+      </tr></thead><tbody>
+      ${sessions.map(s=>`<tr>
+        <td><span style="font-weight:600;color:#e0f0ff">${esc(s.full_name)}</span> <span style="font-size:.7rem;color:#6080a0">${esc(s.roll_no)}</span></td>
+        <td><span class="gbadge g-int" style="font-size:.65rem">${s.game_type||'—'}</span></td>
+        <td style="color:#6080a0">${fmtD(s.started_at)}</td>
+        <td style="font-family:'Orbitron',sans-serif;color:#00c8ff;font-weight:700">${num(s.score||0)}</td>
+        <td style="color:#00ff88">${s.accuracy!=null?Math.round(s.accuracy)+'%':'—'}</td>
+        <td style="color:${{easy:'#00ff88',medium:'#ffcc00',hard:'#ff4060'}[s.difficulty]||'#6080a0'}">${(s.difficulty||'—').toUpperCase()}</td>
+        <td style="font-family:'Orbitron',sans-serif;color:#ffcc00">x${s.combo_max||1}</td>
+      </tr>`).join('')||'<tr><td colspan="7" style="text-align:center;color:#6080a0;padding:24px">No sessions yet.</td></tr>'}
+      </tbody></table>
+    </div>`;
+
+  const top5=students.slice(0,8);
+  const labels=top5.map(s=>s.full_name.split(' ')[0]);
+  dc('topScore');charts['topScore']=new Chart(document.getElementById('topScoreChart'),{
+    type:'bar',data:{labels,datasets:[{label:'Score',data:top5.map(s=>s.total_score||0),
+      backgroundColor:top5.map((_,i)=>`hsl(${200+i*25},70%,55%)`),borderRadius:6,borderSkipped:false}]},
+    options:barOpts()});
+  dc('accByStudent');charts['accByStudent']=new Chart(document.getElementById('accByStudentChart'),{
+    type:'bar',data:{labels,datasets:[{label:'Accuracy %',data:top5.map(s=>Math.round(s.avg_accuracy||0)),
+      backgroundColor:'rgba(0,255,136,.65)',borderRadius:6,borderSkipped:false}]},
+    options:{...barOpts(),scales:{x:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#6080a0'}},
+      y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6080a0'},suggestedMin:0,suggestedMax:100}}}});
+}
+
+/* ── NOTES ── */
+function renderNotes(){
+  const students=data.students||[];
+  const notes=data.notes||[];
+  document.getElementById('notesContent').innerHTML=`
+    <div class="charts-2">
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#a855f7"></span>Add Note for Student</div>
+        <div class="note-form">
+          <select class="note-select" id="noteStudent">
+            <option value="">Select student...</option>
+            ${students.map(s=>`<option value="${s.id}">${esc(s.full_name)} (${esc(s.roll_no)})</option>`).join('')}
+          </select>
+          <textarea class="note-textarea" id="noteText" placeholder="Write your observation, feedback or note..."></textarea>
+          <div><button class="btn-sm btn-primary" onclick="addNote()">💾 Save Note</button></div>
+          <div class="success-msg" id="noteSuccess">Note saved successfully!</div>
+          <div class="error-msg" id="noteError"></div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#00c8ff"></span>Post Announcement</div>
+        <div class="ann-form">
+          <input class="ann-input" id="annTitle" placeholder="Announcement title...">
+          <textarea class="note-textarea" id="annBody" placeholder="Message to students..."></textarea>
+          <select class="note-select" id="annTarget">
+            <option value="student">To: Students</option>
+            <option value="parent">To: Parents</option>
+            <option value="all">To: Everyone</option>
+          </select>
+          <div><button class="btn-sm btn-primary" onclick="postAnnouncement()">📢 Post</button></div>
+          <div class="success-msg" id="annSuccess">Announcement posted!</div>
+        </div>
+      </div>
+    </div>
+    <div class="sec-hdr"><div class="sec-ttl">Recent Notes</div><div class="sec-line"></div></div>
+    <div class="chart-card">
+      ${notes.length?notes.map(n=>`<div class="note-item">
+        <div class="note-text">${esc(n.note)}</div>
+        <div class="note-meta">For: <strong style="color:#c4b5fd">${esc(n.full_name)}</strong> · ${fmtD(n.created_at)}</div>
+      </div>`).join(''):'<div style="color:#6080a0;padding:16px;text-align:center">No notes yet.</div>'}
+    </div>`;
+}
+
+/* ── MANAGE ── */
+function renderManage(){
+  document.getElementById('manageContent').innerHTML=`
+    <div class="charts-2">
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#00ff88"></span>Add New Student</div>
+        <div class="form-grid">
+          <div class="form-field"><label class="form-label">Full Name</label><input class="form-input" id="ns_name" placeholder="Student full name"></div>
+          <div class="form-field"><label class="form-label">Roll Number</label><input class="form-input" id="ns_roll" placeholder="e.g. STU010"></div>
+          <div class="form-field"><label class="form-label">Grade</label>
+            <select class="form-input" id="ns_class">
+              <option value="">Select grade</option>
+              <option>KG</option><option>Grade 1</option><option>Grade 2</option>
+              <option>Grade 3</option><option>Grade 4</option><option>Grade 5</option>
+            </select>
+          </div>
+          <div class="form-field"><label class="form-label">Section</label>
+            <select class="form-input" id="ns_sec"><option value="">Section</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
+          </div>
+          <div class="form-field"><label class="form-label">Password (default: fun123)</label><input class="form-input" id="ns_pass" placeholder="fun123" value="fun123"></div>
+        </div>
+        <div style="margin-top:14px"><button class="btn-sm btn-primary" onclick="addStudent()">➕ Add Student</button></div>
+        <div class="success-msg" id="stuSuccess"></div>
+        <div class="error-msg" id="stuError"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#ffcc00"></span>Grades Assigned</div>
+        <div style="display:flex;flex-direction:column;gap:10px" id="classesList">
+          ${(data.grades||[]).map(c=>`<div style="padding:12px 16px;background:rgba(0,200,255,.06);border:1px solid rgba(0,200,255,.15);border-radius:10px;font-family:'Orbitron',sans-serif;font-size:.85rem;color:#00c8ff">📚 ${esc(c)}</div>`).join('')||
+            '<div style="color:#6080a0;font-size:.85rem">No grades assigned. Contact admin.</div>'}
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ── ACTIONS ── */
+async function addNote(){
+  const sid=document.getElementById('noteStudent').value;
+  const note=document.getElementById('noteText').value.trim();
+  if(!sid||!note){showMsg('noteError','Select student and write a note','error');return;}
+  const r=await post('/api/teacher/note',{student_id:parseInt(sid),note});
+  if(r.success){showMsg('noteSuccess','Note saved!','success');document.getElementById('noteText').value='';
+    await loadData();renderNotes();}
+  else showMsg('noteError',r.error||'Failed','error');
+}
+
+async function postAnnouncement(){
+  const title=document.getElementById('annTitle').value.trim();
+  const body=document.getElementById('annBody').value.trim();
+  const role_target=document.getElementById('annTarget').value;
+  if(!title||!body){return;}
+  const r=await post('/api/teacher/announce',{title,body,role_target});
+  if(r.success){showMsg('annSuccess','Posted!','success');
+    document.getElementById('annTitle').value='';document.getElementById('annBody').value='';}
+}
+
+async function addStudent(){
+  const data={
+    full_name:document.getElementById('ns_name').value.trim(),
+    roll_no:document.getElementById('ns_roll').value.trim(),
+    grade:document.getElementById('ns_class').value,
+    section:document.getElementById('ns_sec').value,
+    password:document.getElementById('ns_pass').value.trim()||'fun123'
+  };
+  for(const[k,v] of Object.entries(data)){if(!v){showMsg('stuError',`${k} required`,'error');return;}}
+  const r=await post('/api/teacher/add_student',data);
+  if(r.success){showMsg('stuSuccess',`Added! Login: ${r.username} / ${r.password}`,'success');
+    await loadData();renderStudents();}
+  else showMsg('stuError',r.error||'Failed','error');
+}
+
+async function post(url,body){try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});return await r.json();}catch(e){return{success:false,error:'Network error'};}}
+
+function showMsg(id,msg,type){
+  const el=document.getElementById(id); if(!el)return;
+  el.textContent=msg;el.style.display='block';
+  setTimeout(()=>el.style.display='none',4000);
+}
+
+function groupBadge(label){
+  const cls=GMAP[label]||'g-unc';
+  return `<span class="gbadge ${cls}">${label||'Unclassified'}</span>`;
+}
+
+function lineOpts(min,max){return{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(2,8,24,.9)',borderColor:'rgba(0,200,255,.2)',borderWidth:1,titleColor:'#00c8ff',bodyColor:'#a0c0e0'}},scales:{x:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#6080a0'}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6080a0'},suggestedMin:min,suggestedMax:max}}};}
+function barOpts(){return{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(2,8,24,.9)',borderColor:'rgba(0,200,255,.2)',borderWidth:1,titleColor:'#00c8ff',bodyColor:'#a0c0e0'}},scales:{x:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#6080a0'}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6080a0'}}}};}
+
+loadData();
+</script>{% endraw %}
+</body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Funmiyo SkillQuest — Math Sprint!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/global.css">
+<script src="/static/js/adaptive_engine.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0d1a0d;overflow:hidden;font-family:'Nunito',sans-serif;}
+#trackCanvas{display:block;position:fixed;top:0;left:0;}
+.hud{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:linear-gradient(180deg,rgba(13,26,13,.97) 0%,transparent 100%);pointer-events:none;}
+.hud-back{pointer-events:all;font-family:'Fredoka One',cursive;font-size:.78rem;color:rgba(0,230,118,.85);text-decoration:none;border:2px solid rgba(0,230,118,.3);padding:7px 16px;border-radius:50px;transition:all .3s;}
+.hud-back:hover{color:#00e676;border-color:#00e676;background:rgba(0,230,118,.1);}
+.hud-pills{display:flex;gap:8px;}
+.pill{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.13);border-radius:50px;padding:5px 12px;display:flex;align-items:center;gap:5px;}
+.pill-icon{font-size:.9rem;}
+.pill-val{font-family:'Fredoka One',cursive;font-size:.9rem;color:#fff;}
+.pill-lbl{font-size:.52rem;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;}
+.eq-panel{position:fixed;bottom:0;left:0;right:0;z-index:50;padding:10px 16px 18px;background:linear-gradient(0deg,rgba(13,26,13,.98) 0%,transparent 100%);display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none;}
+.timer-bar-wrap{width:min(580px,90vw);height:10px;background:rgba(255,255,255,.07);border-radius:5px;overflow:hidden;}
+.timer-bar{height:100%;border-radius:5px;background:linear-gradient(90deg,#00e676,#4ecdc4);transition:width .12s linear;}
+.eq-question{font-family:'Fredoka One',cursive;font-size:2rem;color:#fff;letter-spacing:2px;text-align:center;min-height:42px;text-shadow:0 0 20px rgba(0,230,118,.5);}
+.choice-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;pointer-events:all;}
+.choice-btn{min-width:80px;padding:13px 18px;border-radius:18px;font-family:'Fredoka One',cursive;font-size:1.2rem;cursor:pointer;border:3px solid;transition:all .18s;}
+.choice-btn:hover{transform:translateY(-4px) scale(1.06);}
+.choice-btn:active{transform:scale(.94);}
+.choice-btn.correct{animation:cFlash .45s ease;}
+.choice-btn.wrong{animation:wShake .4s ease;}
+@keyframes cFlash{0%,100%{transform:scale(1)}50%{transform:scale(1.2);filter:brightness(1.5);}}
+@keyframes wShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-9px)}75%{transform:translateX(9px)}}
+.mode-bar{position:fixed;top:68px;right:14px;z-index:60;display:flex;flex-direction:column;gap:5px;pointer-events:all;}
+.mode-pill{padding:5px 12px;border-radius:50px;font-family:'Fredoka One',cursive;font-size:.68rem;border:2px solid;cursor:pointer;transition:all .3s;}
+.mode-pill.easy{border-color:rgba(0,230,118,.32);color:rgba(0,230,118,.5);}
+.mode-pill.easy.active{background:rgba(0,230,118,.13);color:#00e676;border-color:#00e676;}
+.mode-pill.medium{border-color:rgba(255,215,0,.32);color:rgba(255,215,0,.5);}
+.mode-pill.medium.active{background:rgba(255,215,0,.13);color:#ffd700;border-color:#ffd700;}
+.mode-pill.hard{border-color:rgba(255,107,53,.32);color:rgba(255,107,53,.5);}
+.mode-pill.hard.active{background:rgba(255,107,53,.13);color:#ff6b35;border-color:#ff6b35;}
+.mode-pill.adaptive{border-color:rgba(168,85,247,.32);color:rgba(168,85,247,.5);}
+.mode-pill.adaptive.active{background:rgba(168,85,247,.13);color:#a855f7;border-color:#a855f7;}
+.streak-display{position:fixed;top:66px;left:16px;z-index:60;font-family:'Fredoka One',cursive;font-size:.9rem;color:#ffd700;text-shadow:0 0 12px rgba(255,215,0,.5);pointer-events:none;}
+.fb-flash{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);font-family:'Fredoka One',cursive;font-size:3rem;pointer-events:none;z-index:300;text-shadow:0 0 30px currentColor;}
+.fb-flash.show{animation:fbAnim .85s cubic-bezier(.16,1,.3,1) forwards;}
+@keyframes fbAnim{0%{transform:translate(-50%,-50%) scale(0);opacity:1}40%{transform:translate(-50%,-55%) scale(1.3);opacity:1}100%{transform:translate(-50%,-70%) scale(.8);opacity:0}}
+.result-overlay{position:fixed;inset:0;z-index:500;background:rgba(13,26,13,.92);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .4s;}
+.result-overlay.show{opacity:1;pointer-events:all;}
+.result-card{background:#0d1f0d;border:2px solid rgba(0,230,118,.35);border-radius:28px;padding:44px 38px;text-align:center;max-width:420px;width:92%;box-shadow:0 0 80px rgba(0,230,118,.15);transform:scale(.85);transition:transform .4s cubic-bezier(.16,1,.3,1);}
+.result-overlay.show .result-card{transform:scale(1);}
+.result-emoji{font-size:4rem;display:block;margin-bottom:10px;}
+.result-title{font-family:'Fredoka One',cursive;font-size:2rem;margin-bottom:6px;}
+.result-sub{color:rgba(255,255,255,.45);font-size:.88rem;font-weight:700;margin-bottom:18px;}
+.result-stars{font-size:2.4rem;margin-bottom:18px;letter-spacing:5px;}
+.result-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px;}
+.r-stat{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:12px;}
+.r-val{font-family:'Fredoka One',cursive;font-size:1.4rem;color:#00e676;}
+.r-lbl{font-size:.64rem;color:rgba(255,255,255,.35);margin-top:2px;text-transform:uppercase;font-weight:700;}
+.result-btns{display:flex;gap:10px;}
+.result-btn{flex:1;padding:13px;border-radius:50px;font-family:'Fredoka One',cursive;font-size:.98rem;cursor:pointer;border:none;transition:all .3s;}
+.result-btn.primary{background:linear-gradient(135deg,#00e676,#4ecdc4);color:#0d1f0d;}
+.result-btn.secondary{background:transparent;border:2px solid rgba(255,255,255,.18);color:rgba(255,255,255,.45);}
+.result-btn:hover{transform:translateY(-2px);}
+@keyframes scorePop{0%{opacity:1;transform:translateX(-50%) translateY(0)}100%{opacity:0;transform:translateX(-50%) translateY(-65px)}}
+</style>
+</head>
+<body>
+<canvas id="trackCanvas"></canvas>
+<div id="adaptHUDContainer"></div>
+<div class="hud">
+  <a href="/student/hub" class="hud-back">🏠 Home</a>
+  <div class="hud-pills">
+    <div class="pill"><span class="pill-icon">⭐</span><div><div class="pill-val" id="hudScore">0</div><div class="pill-lbl">Score</div></div></div>
+    <div class="pill"><span class="pill-icon">🏁</span><div><div class="pill-val" id="hudRound">1/20</div><div class="pill-lbl">Round</div></div></div>
+    <div class="pill"><span class="pill-icon">🔥</span><div><div class="pill-val" id="hudStreak">0</div><div class="pill-lbl">Streak</div></div></div>
+    <div class="pill"><span class="pill-icon">🎯</span><div><div class="pill-val" id="hudAcc">—</div><div class="pill-lbl">Right</div></div></div>
+  </div>
+  <div style="width:60px"></div>
+</div>
+<div class="mode-bar">
+  <div class="mode-pill easy active" onclick="pickMode('easy')">😊 Easy</div>
+  <div class="mode-pill medium"      onclick="pickMode('medium')">🌟 Medium</div>
+  <div class="mode-pill hard"        onclick="pickMode('hard')">🔥 Hard</div>
+  <div class="mode-pill adaptive"    onclick="pickMode('adaptive')">🤖 AI</div>
+</div>
+<div class="streak-display" id="streakDisplay"></div>
+<div class="eq-panel">
+  <div class="timer-bar-wrap"><div class="timer-bar" id="timerBar" style="width:100%"></div></div>
+  <div class="eq-question" id="eqQuestion">Get Ready... 🏎️</div>
+  <div class="choice-btns" id="choiceBtns"></div>
+</div>
+<div class="fb-flash" id="fbFlash"></div>
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-card">
+    <span class="result-emoji" id="rEmoji">🏆</span>
+    <div class="result-title" id="rTitle">Race Over!</div>
+    <div class="result-sub"   id="rSub">You raced so well!</div>
+    <div class="result-stars" id="rStars">⭐⭐⭐</div>
+    <div class="result-stats">
+      <div class="r-stat"><div class="r-val" id="rScore">0</div><div class="r-lbl">Score</div></div>
+      <div class="r-stat"><div class="r-val" id="rAcc">0%</div><div class="r-lbl">Correct</div></div>
+      <div class="r-stat"><div class="r-val" id="rStreak">0</div><div class="r-lbl">Best Streak</div></div>
+      <div class="r-stat"><div class="r-val" id="rPos">1st</div><div class="r-lbl">Position</div></div>
+    </div>
+    <div class="result-btns">
+      <button class="result-btn primary" onclick="restartGame()">Race Again! 🏎️</button>
+      <button class="result-btn secondary" onclick="window.location.href='/student/hub'">🏠 Home</button>
+    </div>
+  </div>
+</div>
+<script>
+'use strict';
+const canvas=document.getElementById('trackCanvas'),ctx=canvas.getContext('2d');
+let W,H;function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+resize();window.addEventListener('resize',resize);
+
+let gradeConfig={ops:['+'],max_num:10,time:100};
+let currentMode='easy',cfg={};
+const TOTAL_ROUNDS=20;
+let sessionId=null,sessionStart=Date.now(),lastQTime=Date.now();
+let score=0,round=0,streak=0,bestStreak=0,totalQ=0,correctQ=0,fastestRT=999;
+let gameActive=false,questionActive=false,qTimerRAF=null,timerStart=0;
+let playerProgress=0,cars=[],stars=[],particles=[],frameCount=0,operatorCounts={};
+let currentQ=null;
+
+const ai=new AdaptiveEngine('sprint');
+ai.onLevelChange=(s,reason,fb)=>{applySettings(s);updateAdaptiveHUD(s);if(fb)showAdaptFeedback(fb);};
+
+function buildCfg(s){return{operators:s.operators||['+'],numMin:s.numMin||1,numMax:Math.max(s.numMax||10,5),qTime:Math.max(4,Math.round((s.timeLimit||100)/12)),speedMult:s.speedMultiplier||.6,scoreMultiplier:s.scoreMultiplier||1};}
+function applySettings(s){cfg=buildCfg(s);}
+function pickMode(m){currentMode=m;ai.mode=m;document.querySelectorAll('.mode-pill').forEach(el=>el.classList.toggle('active',el.classList.contains(m)));const s=m==='adaptive'?ai.getCurrentSettings():ai.getFixedSettings(m);applySettings(s);updateAdaptiveHUD(s);}
+
+// Kid-friendly car colors and names
+const CAR_DEFS=[{name:'RED',color:'#ff6b6b',emoji:'🚗'},{name:'BLUE',color:'#4ecdc4',emoji:'🚙'},{name:'YELLOW',color:'#ffd700',emoji:'🚕'},{name:'PURPLE',color:'#a855f7',emoji:'🚓'}];
+
+function initCars(){cars=CAR_DEFS.map((d,i)=>({...d,progress:0,speed:.015+i*.003,lane:i+1,wobble:Math.random()*Math.PI*2,boost:0}));}
+function initStars(){stars=[];for(let i=0;i<80;i++)stars.push({x:Math.random()*W,y:Math.random()*H,sz:Math.random()*1.8+.3,spd:Math.random()*.4+.08,a:Math.random()*.6+.2});}
+
+function makeQuestion(){
+  const ops=cfg.operators||['+'],op=ops[Math.floor(Math.random()*ops.length)];
+  let a=randInt(cfg.numMin||1,cfg.numMax||10),b=randInt(cfg.numMin||1,cfg.numMax||10),answer;
+  if(op==='-'&&a<b){const t=a;a=b;b=t;}
+  if(op==='÷'){b=randInt(1,5);a=b*randInt(1,Math.min(cfg.numMax||10,8));if(a>80)a=b*randInt(1,4);}
+  switch(op){case'+':answer=a+b;break;case'-':answer=a-b;break;case'×':answer=a*b;break;case'÷':answer=a/b;break;default:answer=a+b;}
+  const opts=new Set([answer]);
+  const deltas=[-3,-2,-1,1,2,3,4,-4];shuffle(deltas);
+  for(const d of deltas){if(opts.size>=4)break;const w=answer+d;if(w>=0&&w!==answer)opts.add(w);}
+  while(opts.size<4)opts.add(answer+randInt(5,10)*(Math.random()<.5?1:-1));
+  return{a,b,op,answer,options:shuffle([...opts]).slice(0,4),opStr:{'+':'+','-':'−','×':'×','÷':'÷'}[op]||op};
+}
+
+function nextQuestion(){
+  if(!gameActive)return;
+  if(round>=TOTAL_ROUNDS){endGame('finish');return;}
+  round++;currentQ=makeQuestion();questionActive=true;
+  const qTime=cfg.qTime||8;
+  document.getElementById('eqQuestion').textContent=`${currentQ.a} ${currentQ.opStr} ${currentQ.b} = ? 🤔`;
+  document.getElementById('hudRound').textContent=`${round}/${TOTAL_ROUNDS}`;
+  renderChoices();startQTimer(qTime);
+}
+
+function renderChoices(){
+  const bar=document.getElementById('choiceBtns');bar.innerHTML='';
+  const palettes=[{border:'#4ecdc4',bg:'rgba(78,205,196,.15)',c:'#4ecdc4'},{border:'#ff4db8',bg:'rgba(255,77,184,.15)',c:'#ff4db8'},{border:'#ffd700',bg:'rgba(255,215,0,.15)',c:'#ffd700'},{border:'#a855f7',bg:'rgba(168,85,247,.15)',c:'#a855f7'}];
+  currentQ.options.forEach((val,i)=>{const btn=document.createElement('button');btn.className='choice-btn';btn.textContent=val;const p=palettes[i%palettes.length];btn.style.cssText=`border-color:${p.border};background:${p.bg};color:${p.c};box-shadow:0 4px 16px ${p.bg};`;btn.addEventListener('click',()=>handleAnswer(val,btn));bar.appendChild(btn);});
+}
+
+let qTimerEnd=0;
+function startQTimer(secs){
+  cancelAnimationFrame(qTimerRAF);qTimerEnd=performance.now()+secs*1000;lastQTime=Date.now();
+  function tick(){if(!questionActive||!gameActive)return;const left=Math.max(0,qTimerEnd-performance.now())/1000/secs;const bar=document.getElementById('timerBar');if(bar){bar.style.width=(left*100)+'%';bar.style.background=left>.5?'linear-gradient(90deg,#00e676,#4ecdc4)':left>.25?'linear-gradient(90deg,#ffd700,#ff9f43)':'linear-gradient(90deg,#ff6b35,#ff4db8)';}if(left<=0){timeOut();return;}qTimerRAF=requestAnimationFrame(tick);}
+  qTimerRAF=requestAnimationFrame(tick);
+}
+
+function timeOut(){if(!questionActive)return;questionActive=false;totalQ++;streak=0;document.getElementById('streakDisplay').textContent='';showFb('⏰ Too slow!','#ff6b35');ai.record(false,cfg.qTime||8);playerProgress=Math.max(0,playerProgress-.015);updateHUD();setTimeout(nextQuestion,900);}
+
+function handleAnswer(val,btn){
+  if(!questionActive||!gameActive)return;questionActive=false;cancelAnimationFrame(qTimerRAF);totalQ++;
+  const rt=(Date.now()-lastQTime)/1000;if(rt<fastestRT)fastestRT=rt;
+  const correct=val===currentQ.answer;ai.record(correct,rt);
+  if(correct){
+    correctQ++;streak++;if(streak>bestStreak)bestStreak=streak;
+    const pts=Math.round((80+Math.max(0,(cfg.qTime||8)-rt)*8+streak*10)*(cfg.scoreMultiplier||1));
+    score+=pts;operatorCounts[currentQ.op]=(operatorCounts[currentQ.op]||0)+1;
+    btn.classList.add('correct');
+    playerProgress=Math.min(1,playerProgress+.04+Math.min(streak*.005,.02));
+    showFb(streak>=5?'🔥 SUPER!':streak>=3?'⚡ '+streak+' in a row!':'✅ Correct!','#00e676');
+    showScorePop(pts);if(streak>=2)document.getElementById('streakDisplay').textContent=`🔥 ×${streak} streak!`;
+    logAction({action_type:'answer',success:true,operator_used:currentQ.op,operand1:currentQ.a,operand2:currentQ.b,target_value:currentQ.answer,result_value:val,reaction_time:rt,score_delta:pts,combo_count:streak});
+  }else{streak=0;btn.classList.add('wrong');document.getElementById('streakDisplay').textContent='';playerProgress=Math.max(0,playerProgress-.02);showFb('❌ Oops!','#ff6b35');logAction({action_type:'answer',success:false,operator_used:currentQ.op,target_value:currentQ.answer,result_value:val,reaction_time:rt});}
+  updateHUD();setTimeout(()=>{btn.classList.remove('correct','wrong');nextQuestion();},500);
+}
+function updateHUD(){document.getElementById('hudScore').textContent=score.toLocaleString();document.getElementById('hudStreak').textContent=streak;document.getElementById('hudAcc').textContent=totalQ>0?Math.round(correctQ/totalQ*100)+'%':'—';}
+function showFb(msg,color){const el=document.getElementById('fbFlash');el.textContent=msg;el.style.color=color;el.classList.remove('show');void el.offsetWidth;el.classList.add('show');}
+function showScorePop(pts){const div=document.createElement('div');div.style.cssText=`position:fixed;left:${W/2}px;top:${H*.4}px;transform:translateX(-50%);font-family:'Fredoka One',cursive;font-size:1.4rem;color:#ffd700;text-shadow:0 0 14px rgba(255,215,0,.8);pointer-events:none;z-index:80;animation:scorePop 1s ease-out forwards;`;div.textContent='+'+pts;document.body.appendChild(div);setTimeout(()=>div.remove(),1000);}
+
+// Drawing
+let roadScroll=0;
+function drawBg(){ctx.fillStyle='#0d1a0d';ctx.fillRect(0,0,W,H);for(const s of stars){s.y+=s.spd;if(s.y>H){s.y=0;s.x=Math.random()*W;}ctx.globalAlpha=s.a;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(s.x,s.y,s.sz,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;}
+
+function drawTrack(){
+  const lanes=5,laneH=Math.floor(H*.52/lanes),trackTop=Math.floor(H*.14);
+  roadScroll=(roadScroll+2.5*(cfg.speedMult||.7))%70;
+  // Road bg
+  const rg=ctx.createLinearGradient(0,trackTop,0,trackTop+laneH*lanes);rg.addColorStop(0,'rgba(20,40,20,.96)');rg.addColorStop(1,'rgba(10,25,10,.96)');ctx.fillStyle=rg;ctx.fillRect(0,trackTop,W,laneH*lanes);
+  // Borders
+  ctx.strokeStyle='rgba(0,230,118,.25)';ctx.lineWidth=2;ctx.strokeRect(0,trackTop,W,laneH*lanes);
+  // Dashes
+  for(let l=1;l<lanes;l++){const ly=trackTop+l*laneH;ctx.strokeStyle='rgba(255,255,255,.07)';ctx.lineWidth=1;ctx.setLineDash([22,22]);ctx.lineDashOffset=-roadScroll;ctx.beginPath();ctx.moveTo(0,ly);ctx.lineTo(W,ly);ctx.stroke();}
+  ctx.setLineDash([]);
+  // Finish line
+  const fx=W*.91;ctx.strokeStyle='rgba(255,255,255,.45)';ctx.lineWidth=3;ctx.setLineDash([12,12]);ctx.beginPath();ctx.moveTo(fx,trackTop);ctx.lineTo(fx,trackTop+laneH*lanes);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,255,255,.5)';ctx.font="bold 11px 'Fredoka One',cursive";ctx.textAlign='center';ctx.fillText('🏁 FINISH',fx,trackTop-9);
+  return{laneH,trackTop,finishX:fx};
+}
+
+function carX(prog,fx){return 38+prog*(fx-76);}
+function drawCar(cx,cy,color,emoji,name,isPlayer,boost){
+  ctx.save();ctx.translate(cx,cy);
+  if(boost>0){ctx.shadowColor=color;ctx.shadowBlur=20+boost*.4;}
+  // Car body
+  const bg=ctx.createLinearGradient(-18,-10,18,10);bg.addColorStop(0,'rgba(255,255,255,.18)');bg.addColorStop(.5,color);bg.addColorStop(1,'rgba(0,0,0,.35)');ctx.fillStyle=bg;ctx.beginPath();ctx.moveTo(20,0);ctx.lineTo(12,-9);ctx.lineTo(-16,-9);ctx.lineTo(-20,-3);ctx.lineTo(-20,3);ctx.lineTo(-16,9);ctx.lineTo(12,9);ctx.closePath();ctx.fill();
+  // Wheels
+  ctx.fillStyle='#111';[[-10,9],[10,9],[-10,-9],[10,-9]].forEach(([wx,wy])=>{ctx.beginPath();ctx.ellipse(wx,wy,4,3,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle=color+'88';ctx.lineWidth=1;ctx.stroke();});
+  // Emoji on car
+  ctx.font='12px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowBlur=0;ctx.fillText(isPlayer?'🌟':emoji,0,0);
+  // Name tag
+  ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(-16,-21,32,12);ctx.fillStyle=isPlayer?'#fff':color;ctx.font=`bold 8px 'Fredoka One',cursive`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(isPlayer?'YOU':name,-1,-15);
+  ctx.restore();
+}
+
+function drawProgress(progress,trackTop,fx){
+  const bx=W/2-200,by=trackTop-36,bw=400,bh=14;
+  ctx.fillStyle='rgba(13,26,13,.8)';ctx.fillRect(bx,by,bw,bh);ctx.strokeStyle='rgba(0,230,118,.2)';ctx.lineWidth=1;ctx.strokeRect(bx,by,bw,bh);
+  ctx.fillStyle='#00e676';ctx.beginPath();ctx.arc(bx+progress*bw,by+bh/2,5,0,Math.PI*2);ctx.fill();
+  cars.forEach(c=>{ctx.fillStyle=c.color;ctx.beginPath();ctx.arc(bx+c.progress*bw,by+bh/2,3,0,Math.PI*2);ctx.fill();});
+}
+
+function gameLoop(){
+  frameCount++;drawBg();
+  const{laneH,trackTop,finishX}=drawTrack();
+  drawProgress(playerProgress,trackTop,finishX);
+  // AI cars
+  cars.forEach((c,i)=>{c.progress=Math.min(1,c.progress+c.speed*.016*(cfg.speedMult||.7)+(Math.sin(frameCount*.02+c.wobble)*.003));c.wobble+=.04;if(c.boost>0)c.boost--;const cx=carX(c.progress,finishX),cy=trackTop+(i+1)*laneH-laneH/2;drawCar(cx,cy,c.color,c.emoji,c.name,false,c.boost);});
+  // Player passive drift
+  if(gameActive)playerProgress=Math.min(1,playerProgress+.002*.016*(cfg.speedMult||.7));
+  const py=trackTop+.5*laneH-laneH/2,px=carX(playerProgress,finishX);
+  drawCar(px,py,'#00e676','🌟','YOU',true,0);
+  // Check finish
+  if(gameActive&&playerProgress>=1){endGame('won');return;}
+  if(gameActive&&cars.some(c=>c.progress>=1)&&playerProgress<1){endGame('lost');return;}
+  requestAnimationFrame(gameLoop);
+}
+
+async function endGame(reason){
+  if(!gameActive)return;gameActive=false;cancelAnimationFrame(qTimerRAF);questionActive=false;
+  document.getElementById('eqQuestion').textContent='';document.getElementById('choiceBtns').innerHTML='';
+  const timeTaken=Math.round((Date.now()-sessionStart)/1000),acc=totalQ>0?Math.round(correctQ/totalQ*100):0;
+  const pos=reason==='won'?1:cars.filter(c=>c.progress>playerProgress).length+1;
+  const stars=pos===1?3:pos<=2?2:pos<=3?1:0;
+  try{await fetch('/api/session/end',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sessionId,score,difficulty:currentMode,level:round,time_taken:timeTaken,total_attempts:totalQ,correct_attempts:correctQ,combo_max:bestStreak,operators_used:operatorCounts})});}catch(e){}
+  const posStr=['','1st 🥇','2nd 🥈','3rd 🥉','4th','5th'][pos]||`${pos}th`;
+  document.getElementById('rEmoji').textContent=reason==='won'?'🏆':'🏁';
+  document.getElementById('rTitle').textContent=reason==='won'?'You Won! 🎉':`You came ${posStr}!`;
+  document.getElementById('rTitle').style.color=reason==='won'?'#00e676':'#ffd700';
+  document.getElementById('rSub').textContent=reason==='won'?`First place! Score: ${score.toLocaleString()}`:`Position ${posStr}. Score: ${score.toLocaleString()}`;
+  document.getElementById('rStars').textContent=['','⭐','⭐⭐','⭐⭐⭐'][stars]||'⭐';
+  document.getElementById('rScore').textContent=score.toLocaleString();document.getElementById('rAcc').textContent=acc+'%';document.getElementById('rStreak').textContent='×'+bestStreak;document.getElementById('rPos').textContent=posStr;
+  document.getElementById('resultOverlay').classList.add('show');
+}
+
+function restartGame(){document.getElementById('resultOverlay').classList.remove('show');score=0;round=0;streak=0;bestStreak=0;totalQ=0;correctQ=0;fastestRT=999;playerProgress=0;operatorCounts={};document.getElementById('streakDisplay').textContent='';gameActive=true;sessionStart=Date.now();initCars();updateHUD();nextQuestion();}
+async function logAction(d){if(!sessionId)return;try{await fetch('/api/log/action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sessionId,level:round,difficulty:currentMode,...d})});}catch(e){}}
+function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+const sty=document.createElement('style');sty.textContent=`@keyframes scorePop{0%{opacity:1;transform:translateX(-50%) translateY(0)}100%{opacity:0;transform:translateX(-50%) translateY(-65px)}}`;document.head.appendChild(sty);
+
+async function init(){
+  createAdaptiveHUD('adaptHUDContainer');gradeConfig=await ai.loadGradeConfig();await ai.loadProfile();const s=ai.getFixedSettings(currentMode);applySettings(s);
+  try{const r=await fetch('/api/session/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({game_type:'sprint',difficulty:currentMode,level:1})});const d=await r.json();sessionId=d.session_id;}catch(e){}
+  initCars();initStars();updateHUD();gameActive=true;sessionStart=Date.now();requestAnimationFrame(gameLoop);setTimeout(nextQuestion,1200);
+}
+window.addEventListener('load',init);
+</script>
+</body>
+</html>

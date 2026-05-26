@@ -1,0 +1,192 @@
+/* ═══════════════════════════════════════════════════════════
+   FUNMIYO SKILLQUEST — Global Styles
+   Bright, Playful, Kid-Friendly Design System
+═══════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap');
+
+:root {
+  --bg:        #0d0f2b;
+  --bg2:       #13163a;
+  --surface:   rgba(255,255,255,0.06);
+  --border:    rgba(255,255,255,0.12);
+  --accent:    #ff6b35;
+  --accent2:   #ffd700;
+  --blue:      #4ecdc4;
+  --purple:    #a855f7;
+  --green:     #00e676;
+  --pink:      #ff4db8;
+  --red:       #ff4444;
+  --text:      #ffffff;
+  --text-dim:  rgba(255,255,255,0.55);
+  --radius:    18px;
+  --radius-sm: 12px;
+  --shadow:    0 8px 32px rgba(0,0,0,0.35);
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+
+body {
+  background: var(--bg);
+  font-family: 'Nunito', sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:var(--bg2); }
+::-webkit-scrollbar-thumb { background:var(--accent); border-radius:3px; }
+
+/* Star background utility */
+.stars-bg {
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(78,205,196,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(255,107,53,0.08) 0%, transparent 50%);
+}
+
+/* Glass card */
+.glass {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: var(--radius);
+  backdrop-filter: blur(16px);
+}
+
+/* ── Kid-friendly buttons ── */
+.btn-fun {
+  display: inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, var(--accent), #ff9f43);
+  border: none; border-radius: 50px;
+  color: white; font-family:'Fredoka One',sans-serif;
+  font-size: 1.1rem; letter-spacing: 1px;
+  cursor: pointer; transition: all 0.25s;
+  box-shadow: 0 6px 20px rgba(255,107,53,0.4);
+  text-decoration: none;
+}
+.btn-fun:hover { transform:translateY(-3px) scale(1.04); box-shadow:0 10px 28px rgba(255,107,53,0.5); }
+.btn-fun:active { transform:translateY(0) scale(0.97); }
+
+.btn-fun.blue  { background:linear-gradient(135deg,#4ecdc4,#44a8ff); box-shadow:0 6px 20px rgba(78,205,196,0.4); }
+.btn-fun.green { background:linear-gradient(135deg,#00e676,#00bfa5); box-shadow:0 6px 20px rgba(0,230,118,0.4); }
+.btn-fun.purple{ background:linear-gradient(135deg,#a855f7,#7c3aed); box-shadow:0 6px 20px rgba(168,85,247,0.4); }
+.btn-fun.yellow{ background:linear-gradient(135deg,#ffd700,#ff9f43); color:#1a1a2e; box-shadow:0 6px 20px rgba(255,215,0,0.4); }
+
+.btn-outline {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:12px 24px; background:transparent;
+  border:2px solid rgba(255,255,255,0.25);
+  border-radius:50px; color:var(--text-dim);
+  font-family:'Nunito',sans-serif; font-size:0.95rem; font-weight:700;
+  cursor:pointer; transition:all 0.25s; text-decoration:none;
+}
+.btn-outline:hover { border-color:var(--accent); color:var(--accent); }
+
+/* ── Stars rating ── */
+.star-rating { display:flex; gap:4px; align-items:center; }
+.star-rating .star { font-size:1.4rem; transition:transform 0.2s; }
+.star-rating .star.filled { filter:drop-shadow(0 0 6px rgba(255,215,0,0.8)); }
+.star-rating .star.empty  { opacity:0.25; }
+
+/* ── Nav ── */
+.main-nav {
+  position:sticky; top:0; z-index:100;
+  background:rgba(13,15,43,0.95);
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  backdrop-filter:blur(20px);
+  padding:0 28px; height:66px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.nav-brand {
+  display:flex; align-items:center; gap:10px;
+  text-decoration:none;
+}
+.nav-logo-img { font-size:1.8rem; }
+.nav-brand-text { display:flex; flex-direction:column; }
+.nav-brand-name {
+  font-family:'Fredoka One',sans-serif; font-size:1.15rem;
+  background:linear-gradient(135deg,#ff6b35,#ffd700,#4ecdc4);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text; line-height:1;
+}
+.nav-brand-sub { font-size:0.6rem; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; }
+.nav-links { display:flex; align-items:center; gap:8px; }
+.nav-link {
+  padding:8px 16px; border-radius:50px;
+  color:var(--text-dim); text-decoration:none;
+  font-size:0.85rem; font-weight:700; transition:all 0.25s;
+  border:2px solid transparent;
+}
+.nav-link:hover  { color:var(--text); background:rgba(255,255,255,0.07); }
+.nav-link.active { border-color:var(--accent); color:var(--accent); }
+
+/* ── HUD items (in-game) ── */
+.hud-pill {
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:50px; padding:6px 16px;
+  display:flex; align-items:center; gap:8px;
+}
+.hud-pill .hud-icon { font-size:1.1rem; }
+.hud-pill .hud-val  { font-family:'Fredoka One',sans-serif; font-size:1rem; color:var(--text); }
+.hud-pill .hud-lbl  { font-size:0.65rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; }
+
+/* ── Progress bars ── */
+.progress-bar { width:100%; height:12px; background:rgba(255,255,255,0.08); border-radius:6px; overflow:hidden; }
+.progress-fill {
+  height:100%; border-radius:6px;
+  background:linear-gradient(90deg, var(--green), var(--blue));
+  transition:width 0.6s cubic-bezier(0.16,1,0.3,1);
+  position:relative;
+}
+.progress-fill::after { content:''; position:absolute; right:0; top:0; bottom:0; width:20px; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.4)); }
+
+/* ── Modals / Overlays ── */
+.modal-overlay {
+  position:fixed; inset:0; z-index:1000;
+  background:rgba(13,15,43,0.88); backdrop-filter:blur(12px);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none; transition:opacity 0.3s;
+}
+.modal-overlay.show { opacity:1; pointer-events:all; }
+.modal-box {
+  background:var(--bg2);
+  border:2px solid rgba(255,255,255,0.12);
+  border-radius:28px; padding:40px 36px;
+  text-align:center; max-width:440px; width:92%;
+  transform:scale(0.85);
+  transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.modal-overlay.show .modal-box { transform:scale(1); }
+
+/* ── Bounce animation ── */
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+.bounce { animation:bounce 1.2s ease-in-out infinite; }
+
+/* ── Pop animation ── */
+@keyframes popIn { 0%{transform:scale(0)} 70%{transform:scale(1.15)} 100%{transform:scale(1)} }
+.pop-in { animation:popIn 0.4s cubic-bezier(0.16,1,0.3,1) forwards; }
+
+/* ── Correct flash ── */
+@keyframes correctFlash { 0%,100%{transform:scale(1)} 40%{transform:scale(1.25)} }
+@keyframes wrongShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+
+/* ── Score pop ── */
+@keyframes scorePop { 0%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-70px) scale(0.5)} }
+.score-pop {
+  position:fixed; pointer-events:none; z-index:500;
+  font-family:'Fredoka One',sans-serif; font-size:1.6rem;
+  color:var(--accent2); text-shadow:0 0 16px rgba(255,215,0,0.8);
+  animation:scorePop 1s ease-out forwards;
+}
+
+/* ── Star burst ── */
+@keyframes starBurst { 0%{transform:scale(0) rotate(0);opacity:1} 100%{transform:scale(2.5) rotate(180deg);opacity:0} }
+
+/* ── Responsive ── */
+@media(max-width:768px) {
+  .main-nav { padding:0 14px; }
+}

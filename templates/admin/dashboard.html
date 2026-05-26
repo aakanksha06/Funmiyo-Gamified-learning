@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Funmiyo SkillQuest - Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/global.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+body{background:#0d0f2b;color:#fff;font-family:'Nunito',sans-serif;}
+.nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:64px;background:rgba(2,8,24,.98);border-bottom:1px solid rgba(255,102,0,.15);backdrop-filter:blur(20px);}
+.nav-logo{font-family:'Fredoka One',cursive;font-size:1.1rem;font-weight:900;background:linear-gradient(135deg,#ff6b35,#ffd700,#4ecdc4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none;}
+.nav-links{display:flex;gap:8px;align-items:center;}
+.nav-link{padding:7px 15px;border:1px solid transparent;border-radius:8px;color:#6080a0;text-decoration:none;font-size:.78rem;letter-spacing:1px;transition:all .3s;}
+.nav-link:hover,.nav-link.active{border-color:rgba(255,102,0,.3);color:#ff6600;background:rgba(255,102,0,.05);}
+.nav-user{font-size:.8rem;color:#6080a0;} .nav-user span{color:#ff6600;font-weight:600;}
+.page{max-width:1400px;margin:0 auto;padding:28px 32px 60px;position:relative;z-index:10;}
+.grid-overlay{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(255,102,0,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,102,0,.02) 1px,transparent 1px);background-size:60px 60px;}
+
+/* Tabs */
+.tab-bar{display:flex;gap:4px;margin-bottom:28px;background:rgba(255,102,0,.04);border:1px solid rgba(255,102,0,.1);border-radius:12px;padding:4px;}
+.tab{padding:10px 20px;border-radius:9px;font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border:none;background:transparent;color:#6080a0;transition:all .3s;}
+.tab.active{background:rgba(255,102,0,.12);color:#ff6600;}
+.tab:hover:not(.active){color:#a0c0e0;}
+.tab-panel{display:none;} .tab-panel.active{display:block;}
+
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:24px;}
+.stat-card{background:rgba(10,20,60,.65);border:1px solid rgba(255,102,0,.1);border-radius:14px;padding:16px 18px;backdrop-filter:blur(20px);transition:all .3s;}
+.stat-card:hover{border-color:rgba(255,102,0,.3);transform:translateY(-3px);}
+.stat-icon{font-size:1.4rem;margin-bottom:8px;display:block;}
+.stat-val{font-family:'Orbitron',sans-serif;font-size:1.4rem;font-weight:700;color:#fff;}
+.stat-lbl{font-size:.63rem;color:#6080a0;letter-spacing:1px;text-transform:uppercase;margin-top:4px;}
+
+/* Charts */
+.charts-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+.charts-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:18px;}
+.chart-card{background:rgba(10,20,60,.65);border:1px solid rgba(255,102,0,.1);border-radius:18px;padding:20px 22px;backdrop-filter:blur(20px);}
+.chart-title{font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:3px;color:#6080a0;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.chart-title .dot{width:7px;height:7px;border-radius:50%;background:var(--c,#ff6600);}
+.chart-wrap{position:relative;height:200px;}
+
+/* Tables */
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{font-family:'Orbitron',sans-serif;font-size:.58rem;letter-spacing:2px;color:#4060a0;text-transform:uppercase;padding:9px 12px;border-bottom:1px solid rgba(255,102,0,.08);text-align:left;}
+.tbl td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.03);font-size:.84rem;vertical-align:middle;}
+.tbl tr:hover td{background:rgba(255,102,0,.025);}
+.tbl-name{display:flex;align-items:center;gap:10px;font-weight:600;color:#e0f0ff;}
+.tbl-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,rgba(255,102,0,.2),rgba(255,0,128,.2));display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:700;color:#ff6600;flex-shrink:0;}
+
+/* Badges */
+.gbadge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:.63rem;letter-spacing:1px;font-weight:600;text-transform:uppercase;}
+.g-adv{background:rgba(0,255,136,.1);color:#00ff88;border:1px solid rgba(0,255,136,.3);}
+.g-int{background:rgba(0,200,255,.1);color:#00c8ff;border:1px solid rgba(0,200,255,.3);}
+.g-slo{background:rgba(255,204,0,.1);color:#ffcc00;border:1px solid rgba(255,204,0,.3);}
+.g-fas{background:rgba(255,102,0,.1);color:#ff6600;border:1px solid rgba(255,102,0,.3);}
+.g-nee{background:rgba(255,64,96,.1);color:#ff4060;border:1px solid rgba(255,64,96,.3);}
+.g-unc{background:rgba(100,128,160,.1);color:#6080a0;border:1px solid rgba(100,128,160,.3);}
+.role-badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:.63rem;letter-spacing:1px;font-weight:600;}
+.role-admin{background:rgba(255,102,0,.1);color:#ff6600;border:1px solid rgba(255,102,0,.3);}
+.role-teacher{background:rgba(0,200,255,.1);color:#00c8ff;border:1px solid rgba(0,200,255,.3);}
+.role-student{background:rgba(124,58,237,.1);color:#a855f7;border:1px solid rgba(124,58,237,.3);}
+.role-parent{background:rgba(255,0,128,.1);color:#ff0080;border:1px solid rgba(255,0,128,.3);}
+
+/* Action buttons */
+.action-btn{padding:5px 12px;border-radius:7px;font-size:.68rem;cursor:pointer;border:1px solid;transition:all .2s;}
+.btn-danger{background:rgba(255,64,96,.08);border-color:rgba(255,64,96,.3);color:#ff4060;}
+.btn-danger:hover{background:rgba(255,64,96,.18);}
+.btn-warn{background:rgba(255,204,0,.08);border-color:rgba(255,204,0,.3);color:#ffcc00;}
+.btn-warn:hover{background:rgba(255,204,0,.18);}
+
+/* Form */
+.form-section{background:rgba(10,20,60,.65);border:1px solid rgba(255,102,0,.12);border-radius:18px;padding:24px 26px;backdrop-filter:blur(20px);margin-bottom:18px;}
+.form-title{font-family:'Orbitron',sans-serif;font-size:.68rem;letter-spacing:3px;color:#6080a0;text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.form-field{display:flex;flex-direction:column;gap:5px;}
+.form-label{font-size:.67rem;color:#6080a0;letter-spacing:2px;text-transform:uppercase;}
+.form-input{background:rgba(255,102,0,.05);border:1px solid rgba(255,102,0,.18);border-radius:9px;padding:10px 13px;color:#e0f0ff;font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;}
+.form-input:focus{border-color:#ff6600;box-shadow:0 0 0 3px rgba(255,102,0,.1);}
+.form-input option{background:#020818;}
+.btn-orange{padding:11px 24px;border-radius:10px;font-family:'Orbitron',sans-serif;font-size:.68rem;letter-spacing:2px;cursor:pointer;border:none;background:linear-gradient(135deg,#ff6600,#ff0080);color:#fff;transition:all .3s;margin-top:6px;}
+.btn-orange:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,102,0,.25);}
+
+/* Announce */
+.ann-form{display:flex;flex-direction:column;gap:10px;}
+.ann-input{background:rgba(255,102,0,.05);border:1px solid rgba(255,102,0,.18);border-radius:9px;padding:10px 13px;color:#e0f0ff;font-family:'Exo 2',sans-serif;font-size:.88rem;outline:none;width:100%;}
+.ann-input:focus{border-color:#ff6600;box-shadow:0 0 0 3px rgba(255,102,0,.1);}
+
+/* Recent */
+.recent-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.recent-item:last-child{border-bottom:none;}
+.ri-icon{font-size:1.2rem;width:30px;text-align:center;}
+.ri-name{font-size:.88rem;font-weight:600;color:#e0f0ff;}
+.ri-sub{font-size:.7rem;color:#6080a0;margin-top:2px;}
+.ri-date{font-size:.7rem;color:#4060a0;margin-left:auto;}
+
+.sec-hdr{display:flex;align-items:center;gap:12px;margin-bottom:16px;margin-top:8px;}
+.sec-ttl{font-family:'Orbitron',sans-serif;font-size:.68rem;letter-spacing:4px;color:#6080a0;text-transform:uppercase;}
+.sec-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(255,102,0,.15),transparent);}
+
+.success-msg{color:#00ff88;font-size:.82rem;padding:9px 14px;background:rgba(0,255,136,.07);border:1px solid rgba(0,255,136,.2);border-radius:8px;display:none;margin-top:8px;}
+.error-msg{color:#ff4060;font-size:.82rem;padding:9px 14px;background:rgba(255,64,96,.07);border:1px solid rgba(255,64,96,.2);border-radius:8px;display:none;margin-top:8px;}
+.spin{display:flex;align-items:center;justify-content:center;padding:50px;font-family:'Orbitron',sans-serif;font-size:.75rem;letter-spacing:3px;color:#4060a0;}
+.spinner{width:28px;height:28px;border:2px solid rgba(255,102,0,.1);border-top-color:#ff6600;border-radius:50%;animation:spin .8s linear infinite;margin-right:12px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:1200px){.stats-row{grid-template-columns:repeat(3,1fr);}.charts-2,.charts-3{grid-template-columns:1fr;}.form-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:700px){.stats-row{grid-template-columns:repeat(2,1fr);}.form-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="grid-overlay"></div>
+<nav class="nav">
+  <a href="/admin/dashboard" class="nav-logo">FUNMIYO ADMIN</a>
+  <div class="nav-links">
+    <a href="/admin/dashboard" class="nav-link active">⚙️ Admin Panel</a>
+    <span class="nav-user">Admin: <span>{{ full_name }}</span></span>
+    <a href="/logout" class="nav-link">Logout</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('overview')">📊 Overview</button>
+    <button class="tab" onclick="switchTab('students')">👨‍🎓 Students</button>
+    <button class="tab" onclick="switchTab('teachers')">📚 Teachers</button>
+    <button class="tab" onclick="switchTab('parents')">👨‍👩‍👧 Parents</button>
+    <button class="tab" onclick="switchTab('manage')">⚙️ Manage</button>
+    <button class="tab" onclick="switchTab('announce')">📢 Announce</button>
+  </div>
+
+  <div class="tab-panel active" id="tab-overview"><div class="spin"><div class="spinner"></div>Loading...</div></div>
+  <div class="tab-panel" id="tab-students"><div class="spin"><div class="spinner"></div>Loading...</div></div>
+  <div class="tab-panel" id="tab-teachers"><div class="spin"><div class="spinner"></div>Loading...</div></div>
+  <div class="tab-panel" id="tab-parents"><div class="spin"><div class="spinner"></div>Loading...</div></div>
+  <div class="tab-panel" id="tab-manage"><div class="spin"><div class="spinner"></div>Loading...</div></div>
+  <div class="tab-panel" id="tab-announce"><div class="spin"><div class="spinner"></div>Loading...</div></div>
+</div>
+
+{% raw %}<script>
+Chart.defaults.color='#6080a0';Chart.defaults.font.family="'Nunito',sans-serif";Chart.defaults.borderColor='rgba(255,102,0,.05)';
+let data=null; let charts={};
+function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+function esc(s){return(s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function pct(v){return v!=null?Math.round(v)+'%':'—';}
+function num(v){return Number(v||0).toLocaleString();}
+function fmtD(d){if(!d)return'—';try{return new Date(d).toLocaleDateString('en-IN',{month:'short',day:'numeric'});}catch(e){return d;}}
+const GMAP={'Advanced':'g-adv','Intermediate':'g-int','Slow but Accurate':'g-slo',
+            'Fast but Error-Prone':'g-fas','Needs Support':'g-nee','Unclassified':'g-unc'};
+
+async function loadData(){
+  try{const r=await fetch('/api/admin/overview');data=await r.json();}
+  catch(e){console.error(e);data={summary:{},all_students:[],all_teachers:[],all_parents:[],activity_trend:[],group_dist:[],game_stats:[],announcements:[],recent_users:[]};}
+  renderAll();
+}
+
+function switchTab(name){
+  const tabs=['overview','students','teachers','parents','manage','announce'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',tabs[i]===name));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+function renderAll(){renderOverview();renderStudents();renderTeachers();renderParents();renderManage();renderAnnounce();}
+
+/* ── OVERVIEW ── */
+function renderOverview(){
+  const s=data.summary||{};
+  const trend=data.activity_trend||[];
+  const gd=data.group_dist||[];
+  const gs=data.game_stats||[];
+  const ru=data.recent_users||[];
+
+  document.getElementById('tab-overview').innerHTML=`
+    <div class="stats-row">
+      <div class="stat-card"><span class="stat-icon">🏫</span><div class="stat-val">${s.total_schools||0}</div><div class="stat-lbl">Schools</div></div>
+      <div class="stat-card"><span class="stat-icon">👨‍🎓</span><div class="stat-val">${s.total_students||0}</div><div class="stat-lbl">Students</div></div>
+      <div class="stat-card"><span class="stat-icon">📚</span><div class="stat-val">${s.total_teachers||0}</div><div class="stat-lbl">Teachers</div></div>
+      <div class="stat-card"><span class="stat-icon">👨‍👩‍👧</span><div class="stat-val">${s.total_parents||0}</div><div class="stat-lbl">Parents</div></div>
+      <div class="stat-card"><span class="stat-icon">🎮</span><div class="stat-val">${num(s.total_sessions||0)}</div><div class="stat-lbl">Total Sessions</div></div>
+      <div class="stat-card"><span class="stat-icon">🎯</span><div class="stat-val">${pct(s.global_accuracy||0)}</div><div class="stat-lbl">Platform Accuracy</div></div>
+    </div>
+
+    <div class="charts-2">
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#ff6600"></span>Platform Activity (Sessions/Day)</div>
+        <div class="chart-wrap"><canvas id="activityChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#a855f7"></span>Student Group Distribution</div>
+        <div class="chart-wrap"><canvas id="groupChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="charts-2">
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#00c8ff"></span>Game Popularity</div>
+        <div class="chart-wrap"><canvas id="gameChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#00ff88"></span>Platform Accuracy Trend</div>
+        <div class="chart-wrap"><canvas id="accTrendChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="charts-2">
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#ffcc00"></span>Recent Registrations</div>
+        ${ru.map(u=>`<div class="recent-item">
+          <div class="ri-icon">${{admin:'⚙️',teacher:'📚',student:'🎮',parent:'👨‍👩‍👧'}[u.role]||'👤'}</div>
+          <div><div class="ri-name">${esc(u.full_name)}</div><div class="ri-sub"><span class="role-badge role-${u.role}">${u.role}</span></div></div>
+          <div class="ri-date">${fmtD(u.created_at)}</div>
+        </div>`).join('')||'<div style="color:#6080a0;padding:10px">No recent registrations.</div>'}
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#00c8ff"></span>Schools</div>
+        ${(data.schools||[]).map(sc=>`<div class="recent-item">
+          <div class="ri-icon">🏫</div>
+          <div><div class="ri-name">${esc(sc.name)}</div>
+          <div class="ri-sub">${esc(sc.code)} · ${sc.student_count||0} students · ${sc.teacher_count||0} teachers</div></div>
+          <div class="ri-date">${sc.is_active?'Active':'Paused'}</div>
+        </div>`).join('')||'<div style="color:#6080a0;padding:10px">No schools yet.</div>'}
+      </div>
+    </div>
+
+    <div class="charts-2">
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#ff0080"></span>Recent Announcements</div>
+        ${(data.announcements||[]).slice(0,4).map(a=>`<div class="recent-item">
+          <div class="ri-icon">📢</div>
+          <div><div class="ri-name">${esc(a.title)}</div>
+          <div class="ri-sub" style="color:#a0c0e0;font-size:.75rem">${esc((a.body||'').slice(0,60))}${(a.body||'').length>60?'...':''}</div></div>
+          <div class="ri-date">${fmtD(a.created_at)}</div>
+        </div>`).join('')||'<div style="color:#6080a0;padding:10px">No announcements.</div>'}
+      </div>
+      </div>
+    </div>`;
+
+  // Activity
+  const al=trend.map(t=>t.date?t.date.slice(5):'');
+  const av=trend.map(t=>t.sessions||0);
+  dc('activity');charts['activity']=new Chart(document.getElementById('activityChart'),{
+    type:'bar',data:{labels:al.length?al:['—'],datasets:[{label:'Sessions',data:av.length?av:[0],
+      backgroundColor:'rgba(255,102,0,.6)',borderRadius:5,borderSkipped:false}]},
+    options:barOpts()});
+
+  // Group
+  const gcol={'Advanced':'rgba(0,255,136,.7)','Intermediate':'rgba(0,200,255,.7)','Slow but Accurate':'rgba(255,204,0,.7)','Fast but Error-Prone':'rgba(255,102,0,.7)','Needs Support':'rgba(255,64,96,.7)','Unclassified':'rgba(100,128,160,.6)'};
+  dc('group');charts['group']=new Chart(document.getElementById('groupChart'),{
+    type:'doughnut',data:{labels:gd.map(g=>g.group_label||'Unclassified'),
+      datasets:[{data:gd.map(g=>g.cnt),backgroundColor:gd.map(g=>gcol[g.group_label]||'rgba(100,128,160,.6)'),borderColor:'rgba(255,255,255,.06)',borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#6080a0',padding:10,usePointStyle:true,font:{size:11}}},tooltip:{backgroundColor:'rgba(2,8,24,.9)',borderColor:'rgba(255,102,0,.2)',borderWidth:1}}}});
+
+  // Games
+  const gameColors={'bubble':'rgba(0,200,255,.7)','blaster':'rgba(255,102,0,.7)','merge':'rgba(0,255,136,.7)','boss':'rgba(255,0,80,.7)'};
+  dc('game');charts['game']=new Chart(document.getElementById('gameChart'),{
+    type:'bar',data:{labels:gs.map(g=>g.game_type||'?'),
+      datasets:[{label:'Sessions Played',data:gs.map(g=>g.played||0),
+        backgroundColor:gs.map(g=>gameColors[g.game_type]||'rgba(124,58,237,.7)'),borderRadius:6,borderSkipped:false}]},
+    options:barOpts()});
+
+  // Acc trend
+  const accTl=trend.map(t=>t.date?t.date.slice(5):'');
+  const accTv=trend.map(t=>Math.round(t.avg_acc||0));
+  dc('accTrend');charts['accTrend']=new Chart(document.getElementById('accTrendChart'),{
+    type:'line',data:{labels:accTl.length?accTl:['—'],datasets:[{label:'Avg Accuracy %',data:accTv.length?accTv:[0],
+      borderColor:'#00ff88',backgroundColor:'rgba(0,255,136,.07)',tension:.4,fill:true,pointRadius:3,borderWidth:2}]},
+    options:lineOpts(0,100)});
+}
+
+/* ── STUDENTS ── */
+function renderStudents(){
+  const students=data.all_students||[];
+  document.getElementById('tab-students').innerHTML=`
+    <div class="sec-hdr"><div class="sec-ttl">All Students (${students.length})</div><div class="sec-line"></div></div>
+    <div class="chart-card" style="overflow-x:auto">
+      <table class="tbl"><thead><tr>
+        <th>Student</th><th>School</th><th>Roll No</th><th>Grade</th><th>Username</th>
+        <th>AI Group</th><th>Score</th><th>Accuracy</th><th>Sessions</th><th>Last Login</th><th>Actions</th>
+      </tr></thead><tbody>
+      ${students.map(s=>`<tr>
+        <td><div class="tbl-name"><div class="tbl-avatar">${(s.full_name||'?')[0]}</div>${esc(s.full_name)}</div></td>
+        <td style="color:#a0c0e0;font-size:.8rem">${esc(s.school_name||'Funmiyo Demo School')}</td>
+        <td style="font-family:'Orbitron',sans-serif;font-size:.78rem;color:#6080a0">${esc(s.roll_no)}</td>
+        <td style="color:#6080a0">${esc(s.grade)} ${esc(s.section)}</td>
+        <td style="color:#a0c0e0;font-size:.8rem">${esc(s.username||'')}</td>
+        <td>${groupBadge(s.ai_group||s.group_label)}</td>
+        <td style="font-family:'Orbitron',sans-serif;font-weight:700;color:#ff6600">${num(s.total_score||0)}</td>
+        <td style="color:#00ff88">${pct(s.avg_accuracy||0)}</td>
+        <td style="color:#a0c0e0">${s.total_sessions||0}</td>
+        <td style="color:#4060a0;font-size:.78rem">${fmtD(s.last_login)}</td>
+        <td>
+          <button class="action-btn btn-warn" onclick="resetStudent(${s.id},'${esc(s.full_name)}')">Reset</button>
+          <button class="action-btn btn-danger" style="margin-left:4px" onclick="toggleUser(${s.user_id},'${esc(s.full_name)}')">${s.is_active?'Disable':'Enable'}</button>
+        </td>
+      </tr>`).join('')||'<tr><td colspan="11" style="text-align:center;color:#6080a0;padding:30px">No students found.</td></tr>'}
+      </tbody></table>
+    </div>`;
+}
+
+/* ── TEACHERS ── */
+function renderTeachers(){
+  const teachers=data.all_teachers||[];
+  document.getElementById('tab-teachers').innerHTML=`
+    <div class="sec-hdr"><div class="sec-ttl">All Teachers (${teachers.length})</div><div class="sec-line"></div></div>
+    <div class="chart-card" style="overflow-x:auto">
+      <table class="tbl"><thead><tr>
+        <th>Teacher</th><th>School</th><th>Username</th><th>Subject</th><th>Grades</th><th>Students</th><th>Last Login</th><th>Actions</th>
+      </tr></thead><tbody>
+      ${teachers.map(t=>`<tr>
+        <td><div class="tbl-name"><div class="tbl-avatar" style="color:#00c8ff">${(t.full_name||'?')[0]}</div>${esc(t.full_name)}</div></td>
+        <td style="color:#a0c0e0;font-size:.8rem">${esc(t.school_name||'Funmiyo Demo School')}</td>
+        <td style="color:#a0c0e0;font-size:.8rem">${esc(t.username||'')}</td>
+        <td style="color:#6080a0">${esc(t.subject||'Mathematics')}</td>
+        <td style="color:#6080a0;font-size:.8rem">${(() => {try{return JSON.parse(t.grades_assigned||'[]').join(', ');}catch(e){return t.grades_assigned||'—';}})()}</td>
+        <td style="color:#a0c0e0">${t.student_count||0}</td>
+        <td style="color:#4060a0;font-size:.78rem">${fmtD(t.last_login)}</td>
+        <td><button class="action-btn btn-danger" onclick="toggleUser(${t.id},'${esc(t.full_name)}')">Disable</button></td>
+      </tr>`).join('')||'<tr><td colspan="7" style="text-align:center;color:#6080a0;padding:30px">No teachers found.</td></tr>'}
+      </tbody></table>
+    </div>`;
+}
+
+/* ── PARENTS ── */
+function renderParents(){
+  const parents=data.all_parents||[];
+  document.getElementById('tab-parents').innerHTML=`
+    <div class="sec-hdr"><div class="sec-ttl">All Parents (${parents.length})</div><div class="sec-line"></div></div>
+    <div class="chart-card" style="overflow-x:auto">
+      <table class="tbl"><thead><tr>
+        <th>Parent</th><th>School</th><th>Username</th><th>Email</th><th>Children Linked</th><th>Last Login</th><th>Actions</th>
+      </tr></thead><tbody>
+      ${parents.map(p=>`<tr>
+        <td><div class="tbl-name"><div class="tbl-avatar" style="color:#ff0080">${(p.full_name||'?')[0]}</div>${esc(p.full_name)}</div></td>
+        <td style="color:#a0c0e0;font-size:.8rem">${esc(p.school_name||'Funmiyo Demo School')}</td>
+        <td style="color:#a0c0e0;font-size:.8rem">${esc(p.username||'')}</td>
+        <td style="color:#6080a0;font-size:.8rem">${esc(p.email||'—')}</td>
+        <td style="color:#a0c0e0">${p.child_count||0}</td>
+        <td style="color:#4060a0;font-size:.78rem">${fmtD(p.last_login)}</td>
+        <td><button class="action-btn btn-danger" onclick="toggleUser(${p.id},'${esc(p.full_name)}')">Disable</button></td>
+      </tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:#6080a0;padding:30px">No parents found.</td></tr>'}
+      </tbody></table>
+    </div>`;
+}
+
+/* ── MANAGE ── */
+function renderManage(){
+  const schoolOptions=(data.schools||[]).map(s=>`<option value="${s.id}">${esc(s.name)} (${esc(s.code)})</option>`).join('');
+  document.getElementById('tab-manage').innerHTML=`
+    <div class="form-section">
+      <div class="form-title"><span>🏫</span> Add School</div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-label">School Name</label><input class="form-input" id="sc_name" placeholder="Sunshine Primary School"></div>
+        <div class="form-field"><label class="form-label">School Code</label><input class="form-input" id="sc_code" placeholder="SUNSHINE01"></div>
+        <div class="form-field"><label class="form-label">City</label><input class="form-input" id="sc_city" placeholder="City"></div>
+        <div class="form-field"><label class="form-label">Contact Email</label><input class="form-input" id="sc_email" placeholder="admin@school.edu"></div>
+        <div class="form-field"><label class="form-label">Grade Settings JSON</label><input class="form-input" id="sc_grade_config" placeholder='{"Grade 1":{"max_num":15,"time":110}}'></div>
+      </div>
+      <button class="btn-orange" onclick="addSchool()">🏫 Create School</button>
+      <div class="success-msg" id="schoolSuccess"></div>
+      <div class="error-msg" id="schoolError"></div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-title"><span>➕</span> Add New User</div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-label">School</label>
+          <select class="form-input" id="nu_school">${schoolOptions}</select>
+        </div>
+        <div class="form-field"><label class="form-label">Role</label>
+          <select class="form-input" id="nu_role" onchange="updateAddForm()">
+            <option value="student">Student</option>
+            <option value="teacher">Teacher</option>
+            <option value="parent">Parent</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-label">Full Name</label><input class="form-input" id="nu_name" placeholder="Full name"></div>
+        <div class="form-field"><label class="form-label">Username</label><input class="form-input" id="nu_user" placeholder="Username (for login)"></div>
+        <div class="form-field"><label class="form-label">Password</label><input class="form-input" id="nu_pass" placeholder="Password" value="fun123"></div>
+        <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="nu_email" placeholder="Email (optional)"></div>
+        <div class="form-field" id="nu_roll_field"><label class="form-label">Roll Number</label><input class="form-input" id="nu_roll" placeholder="e.g. STU010"></div>
+        <div class="form-field" id="nu_class_field"><label class="form-label">Grade</label>
+          <select class="form-input" id="nu_class">
+            <option value="">Select grade</option>
+            <option>KG</option><option>Grade 1</option><option>Grade 2</option><option>Grade 3</option><option>Grade 4</option><option>Grade 5</option>
+          </select>
+        </div>
+        <div class="form-field" id="nu_sec_field"><label class="form-label">Section</label>
+          <select class="form-input" id="nu_sec"><option value="">Section</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
+        </div>
+        <div class="form-field" id="nu_subject_field" style="display:none"><label class="form-label">Subject</label><input class="form-input" id="nu_subject" placeholder="Mathematics" value="Mathematics"></div>
+      </div>
+      <button class="btn-orange" onclick="addUser()">➕ Create User</button>
+      <div class="success-msg" id="addSuccess"></div>
+      <div class="error-msg" id="addError"></div>
+    </div>`;
+}
+
+function updateAddForm(){
+  const role=document.getElementById('nu_role').value;
+  document.getElementById('nu_roll_field').style.display=role==='student'?'':'none';
+  document.getElementById('nu_class_field').style.display=role==='student'?'':'none';
+  document.getElementById('nu_sec_field').style.display=role==='student'?'':'none';
+  document.getElementById('nu_subject_field').style.display=role==='teacher'?'':'none';
+}
+
+/* ── ANNOUNCE ── */
+function renderAnnounce(){
+  const ann=data.announcements||[];
+  document.getElementById('tab-announce').innerHTML=`
+    <div class="charts-2">
+      <div class="form-section">
+        <div class="form-title"><span>📢</span> New Announcement</div>
+        <div class="ann-form">
+          <input class="ann-input" id="ann_title" placeholder="Announcement title...">
+          <textarea class="ann-input" id="ann_body" placeholder="Message..." style="min-height:100px;resize:vertical"></textarea>
+          <select class="ann-input" id="ann_target">
+            <option value="all">To: Everyone</option>
+            <option value="student">To: Students only</option>
+            <option value="teacher">To: Teachers only</option>
+            <option value="parent">To: Parents only</option>
+          </select>
+          <div><button class="btn-orange" onclick="postAnnouncement()">📢 Post Announcement</button></div>
+          <div class="success-msg" id="annSuccess">Posted!</div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-title"><span>📋</span> All Announcements</div>
+        <div style="max-height:400px;overflow-y:auto">
+          ${ann.map(a=>`<div style="padding:12px 0;border-bottom:1px solid rgba(255,102,0,.08)">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+              <span style="font-weight:600;color:#e0f0ff;font-size:.9rem">${esc(a.title)}</span>
+              <span class="role-badge role-${a.role_target==='all'?'admin':'student'}" style="font-size:.6rem">${a.role_target}</span>
+            </div>
+            <div style="font-size:.82rem;color:#8090b0;line-height:1.5">${esc(a.body)}</div>
+            <div style="font-size:.68rem;color:#4060a0;margin-top:4px">By ${esc(a.author||'Admin')} · ${fmtD(a.created_at)}</div>
+          </div>`).join('')||'<div style="color:#6080a0;padding:10px">No announcements yet.</div>'}
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ── ACTIONS ── */
+async function resetStudent(id,name){
+  if(!confirm(`Reset all game data for ${name}? This cannot be undone.`))return;
+  const r=await post('/api/admin/reset_student',{student_id:id});
+  if(r.success){alert('Reset successful.');await loadData();}
+  else alert('Failed: '+(r.error||'Unknown error'));
+}
+
+async function toggleUser(id,name){
+  if(!confirm(`Toggle active status for ${name}?`))return;
+  const r=await post('/api/admin/toggle_user',{user_id:id});
+  if(r.success){await loadData();}
+  else alert('Failed: '+(r.error||'Unknown error'));
+}
+
+async function addUser(){
+  const role=document.getElementById('nu_role').value;
+  const body={
+    role,
+    school_id:parseInt(document.getElementById('nu_school').value||'0')||null,
+    full_name:document.getElementById('nu_name').value.trim(),
+    username:document.getElementById('nu_user').value.trim(),
+    password:document.getElementById('nu_pass').value.trim()||'fun123',
+    email:document.getElementById('nu_email').value.trim(),
+  };
+  if(role==='student'){
+    body.roll_no=document.getElementById('nu_roll').value.trim();
+    body.grade=document.getElementById('nu_class').value;
+    body.section=document.getElementById('nu_sec').value;
+  }
+  if(role==='teacher'){
+    body.subject=document.getElementById('nu_subject').value.trim()||'Mathematics';
+  }
+  if(!body.full_name||!body.username){showMsg('addError','Name and username required','error');return;}
+  const r=await post('/api/admin/add_user',body);
+  if(r.success){showMsg('addSuccess','User created successfully!','success');await loadData();}
+  else showMsg('addError',r.error||'Failed','error');
+}
+
+async function addSchool(){
+  const body={
+    name:document.getElementById('sc_name').value.trim(),
+    code:document.getElementById('sc_code').value.trim(),
+    city:document.getElementById('sc_city').value.trim(),
+    contact_email:document.getElementById('sc_email').value.trim(),
+    grade_config:{}
+  };
+  const rawCfg=document.getElementById('sc_grade_config').value.trim();
+  if(rawCfg){try{body.grade_config=JSON.parse(rawCfg);}catch(e){showMsg('schoolError','Grade settings must be valid JSON','error');return;}}
+  if(!body.name||!body.code){showMsg('schoolError','School name and code required','error');return;}
+  const r=await post('/api/admin/add_school',body);
+  if(r.success){showMsg('schoolSuccess','School created successfully!','success');await loadData();}
+  else showMsg('schoolError',r.error||'Failed','error');
+}
+
+async function postAnnouncement(){
+  const title=document.getElementById('ann_title').value.trim();
+  const body=document.getElementById('ann_body').value.trim();
+  const role_target=document.getElementById('ann_target').value;
+  if(!title||!body)return;
+  const r=await post('/api/admin/announce',{title,body,role_target});
+  if(r.success){showMsg('annSuccess','Posted!','success');document.getElementById('ann_title').value='';document.getElementById('ann_body').value='';await loadData();}
+}
+
+function groupBadge(label){return `<span class="gbadge ${GMAP[label]||'g-unc'}">${label||'Unclassified'}</span>`;}
+async function post(url,body){try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});return await r.json();}catch(e){return{success:false,error:'Network error'};}}
+function showMsg(id,msg,type){const el=document.getElementById(id);if(!el)return;el.textContent=msg;el.style.display='block';setTimeout(()=>el&&(el.style.display='none'),4000);}
+
+function lineOpts(min,max){return{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(2,8,24,.9)',borderColor:'rgba(255,102,0,.2)',borderWidth:1,titleColor:'#ff6600',bodyColor:'#a0c0e0'}},scales:{x:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#6080a0'}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6080a0'},suggestedMin:min,suggestedMax:max}}};}
+function barOpts(){return{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(2,8,24,.9)',borderColor:'rgba(255,102,0,.2)',borderWidth:1,titleColor:'#ff6600',bodyColor:'#a0c0e0'}},scales:{x:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#6080a0'}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6080a0'}}}};}
+
+loadData();
+</script>{% endraw %}
+</body>
+</html>

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Funmiyo SkillQuest - Parent Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/global.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+body{background:#0d0f2b;color:#fff;font-family:'Nunito',sans-serif;}
+.nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:64px;background:rgba(2,8,24,.97);border-bottom:1px solid rgba(255,0,128,.12);backdrop-filter:blur(20px);}
+.nav-logo{font-family:'Fredoka One',cursive;font-size:1.1rem;font-weight:900;background:linear-gradient(135deg,#ff6b35,#ffd700,#4ecdc4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none;}
+.nav-links{display:flex;gap:8px;align-items:center;}
+.nav-link{padding:7px 15px;border:1px solid transparent;border-radius:8px;color:#6080a0;text-decoration:none;font-size:.78rem;letter-spacing:1px;transition:all .3s;}
+.nav-link:hover,.nav-link.active{border-color:rgba(255,0,128,.3);color:#ff0080;background:rgba(255,0,128,.05);}
+.nav-user{font-size:.8rem;color:#6080a0;} .nav-user span{color:#ff0080;font-weight:600;}
+.page{max-width:1300px;margin:0 auto;padding:28px 32px 60px;position:relative;z-index:10;}
+.grid-overlay{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(255,0,128,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,0,128,.02) 1px,transparent 1px);background-size:60px 60px;}
+
+/* Child selector */
+.child-tabs{display:flex;gap:8px;margin-bottom:26px;flex-wrap:wrap;}
+.child-tab{padding:10px 20px;border-radius:12px;border:1px solid rgba(255,0,128,.2);background:transparent;color:#6080a0;font-family:'Exo 2',sans-serif;font-size:.85rem;cursor:pointer;transition:all .3s;display:flex;align-items:center;gap:10px;}
+.child-tab.active{border-color:#ff0080;color:#ff0080;background:rgba(255,0,128,.08);}
+.child-tab:hover:not(.active){border-color:rgba(255,0,128,.35);color:#c0407a;}
+.child-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,rgba(255,0,128,.2),rgba(124,58,237,.2));display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;color:#ff0080;flex-shrink:0;}
+
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px;}
+.stat-card{background:rgba(10,20,60,.65);border:1px solid rgba(255,0,128,.1);border-radius:16px;padding:18px 20px;backdrop-filter:blur(20px);transition:all .3s;}
+.stat-card:hover{border-color:rgba(255,0,128,.3);transform:translateY(-3px);}
+.stat-icon{font-size:1.5rem;margin-bottom:8px;display:block;}
+.stat-val{font-family:'Orbitron',sans-serif;font-size:1.55rem;font-weight:700;color:#fff;}
+.stat-lbl{font-size:.66rem;color:#6080a0;letter-spacing:1px;text-transform:uppercase;margin-top:5px;}
+
+/* AI Card */
+.ai-card{display:flex;align-items:center;gap:20px;padding:20px 26px;margin-bottom:22px;background:linear-gradient(135deg,rgba(255,0,128,.05),rgba(124,58,237,.05));border:1px solid rgba(255,0,128,.15);border-radius:18px;backdrop-filter:blur(20px);}
+.ai-icon{font-size:2.4rem;}
+.ai-body{flex:1;}
+.ai-sub{font-size:.62rem;color:#6080a0;letter-spacing:2px;text-transform:uppercase;}
+.ai-name{font-family:'Orbitron',sans-serif;font-size:1.2rem;font-weight:700;margin:3px 0;}
+.ai-desc{font-size:.82rem;color:#a0c0e0;}
+.ai-scores{display:flex;gap:14px;}
+.ai-score-item{text-align:center;}
+.ai-score-val{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;color:#7c3aed;}
+.ai-score-lbl{font-size:.6rem;color:#6080a0;text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.ai-rec{padding:7px 14px;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.3);border-radius:9px;font-size:.76rem;color:#a78bfa;}
+
+/* Charts */
+.charts-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+.chart-card{background:rgba(10,20,60,.65);border:1px solid rgba(255,0,128,.1);border-radius:18px;padding:20px 22px;backdrop-filter:blur(20px);}
+.chart-title{font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:3px;color:#6080a0;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.chart-title .dot{width:7px;height:7px;border-radius:50%;background:var(--c,#ff0080);}
+.chart-wrap{position:relative;height:200px;}
+
+/* Op bars */
+.op-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.op-sym{font-family:'Orbitron',sans-serif;font-size:.9rem;font-weight:700;width:26px;text-align:center;flex-shrink:0;}
+.op-bg{flex:1;height:9px;background:rgba(255,255,255,.05);border-radius:5px;overflow:hidden;}
+.op-fill{height:100%;border-radius:5px;transition:width 1.2s ease;}
+.op-pct{font-size:.76rem;color:#6080a0;width:36px;text-align:right;flex-shrink:0;}
+
+/* Sessions */
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{font-family:'Orbitron',sans-serif;font-size:.58rem;letter-spacing:2px;color:#4060a0;text-transform:uppercase;padding:9px 12px;border-bottom:1px solid rgba(255,0,128,.08);text-align:left;}
+.tbl td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.03);font-size:.84rem;}
+.tbl tr:hover td{background:rgba(255,0,128,.02);}
+
+/* Notes */
+.note-item{padding:13px 17px;background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.15);border-radius:11px;margin-bottom:8px;}
+.note-text{font-size:.85rem;color:#c4b5fd;line-height:1.5;}
+.note-meta{font-size:.68rem;color:#6080a0;margin-top:5px;}
+
+/* Announcements */
+.ann-item{padding:14px 18px;background:rgba(255,0,128,.05);border:1px solid rgba(255,0,128,.15);border-radius:12px;margin-bottom:8px;}
+.ann-title{font-weight:600;color:#f472b6;margin-bottom:4px;}
+.ann-body{font-size:.82rem;color:#8090b0;line-height:1.5;}
+.ann-date{font-size:.68rem;color:#4060a0;margin-top:5px;}
+
+/* Link child */
+.link-form{display:flex;gap:10px;align-items:center;}
+.link-input{flex:1;background:rgba(255,0,128,.05);border:1px solid rgba(255,0,128,.2);border-radius:10px;padding:11px 14px;color:#e0f0ff;font-family:'Exo 2',sans-serif;font-size:.9rem;outline:none;}
+.link-input:focus{border-color:#ff0080;box-shadow:0 0 0 3px rgba(255,0,128,.1);}
+.btn-pink{padding:11px 22px;border-radius:10px;font-family:'Orbitron',sans-serif;font-size:.68rem;letter-spacing:2px;cursor:pointer;border:none;background:linear-gradient(135deg,#ff0080,#7c3aed);color:#fff;transition:all .3s;}
+.btn-pink:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,0,128,.25);}
+
+.sec-hdr{display:flex;align-items:center;gap:12px;margin-bottom:18px;margin-top:8px;}
+.sec-ttl{font-family:'Orbitron',sans-serif;font-size:.68rem;letter-spacing:4px;color:#6080a0;text-transform:uppercase;}
+.sec-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(255,0,128,.15),transparent);}
+
+.spin{display:flex;align-items:center;justify-content:center;padding:50px;font-family:'Orbitron',sans-serif;font-size:.75rem;letter-spacing:3px;color:#4060a0;}
+.spinner{width:28px;height:28px;border:2px solid rgba(255,0,128,.1);border-top-color:#ff0080;border-radius:50%;animation:spin .8s linear infinite;margin-right:12px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.success-msg{color:#00ff88;font-size:.82rem;padding:9px 14px;background:rgba(0,255,136,.07);border:1px solid rgba(0,255,136,.2);border-radius:8px;display:none;margin-top:8px;}
+.error-msg{color:#ff4060;font-size:.82rem;padding:9px 14px;background:rgba(255,64,96,.07);border:1px solid rgba(255,64,96,.2);border-radius:8px;display:none;margin-top:8px;}
+@media(max-width:1024px){.stats-row{grid-template-columns:repeat(3,1fr);}.charts-2{grid-template-columns:1fr;}.ai-card{flex-direction:column;}.ai-scores{flex-wrap:wrap;}}
+@media(max-width:600px){.stats-row{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<div class="grid-overlay"></div>
+<nav class="nav">
+  <a href="/parent/dashboard" class="nav-logo">FUNMIYO SKILLQUEST</a>
+  <div class="nav-links">
+    <a href="/parent/dashboard" class="nav-link active">👨‍👩‍👧 Dashboard</a>
+    <span class="nav-user">Parent: <span>{{ full_name }}</span></span>
+    <a href="/logout" class="nav-link">Logout</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div id="mainContent"><div class="spin"><div class="spinner"></div>Loading your children's data...</div></div>
+</div>
+
+{% raw %}<script>
+Chart.defaults.color='#6080a0';Chart.defaults.font.family="'Nunito',sans-serif";Chart.defaults.borderColor='rgba(255,0,128,.05)';
+let allData=null; let currentChildIdx=0; let charts={};
+function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+function esc(s){return(s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function pct(v){return v!=null?Math.round(v)+'%':'—';}
+function num(v){return Number(v||0).toLocaleString();}
+function fmtD(d){if(!d)return'—';try{return new Date(d).toLocaleDateString('en-IN',{month:'short',day:'numeric'});}catch(e){return d;}}
+function tryJ(s,d){try{return typeof s==='string'?JSON.parse(s):s||d;}catch(e){return d;}}
+
+const GMAP={'Advanced':{color:'#00ff88',icon:'🚀'},'Intermediate':{color:'#00c8ff',icon:'⚡'},
+  'Slow but Accurate':{color:'#ffcc00',icon:'🎯'},'Fast but Error-Prone':{color:'#ff6600',icon:'💨'},
+  'Needs Support':{color:'#ff4060',icon:'📚'},'Unclassified':{color:'#6080a0',icon:'🤖'}};
+
+async function loadData(){
+  try{const r=await fetch('/api/parent/overview');allData=await r.json();}
+  catch(e){allData={children:[],announcements:[]};}
+  renderAll();
+}
+
+function renderAll(){
+  const children=allData.children||[];
+  const ann=allData.announcements||[];
+  const page=document.getElementById('mainContent');
+
+  if(!children.length){
+    page.innerHTML=`
+      <div class="chart-card" style="max-width:500px;margin:0 auto;text-align:center;padding:40px;">
+        <div style="font-size:3rem;margin-bottom:16px">👨‍👩‍👧</div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;color:#ff0080;margin-bottom:12px">No Children Linked</div>
+        <div style="color:#6080a0;font-size:.88rem;margin-bottom:24px">Link your child's account using their roll number.</div>
+        <div class="link-form" style="justify-content:center">
+          <input class="link-input" id="linkRoll" placeholder="Enter child's roll number (e.g. STU001)">
+          <button class="btn-pink" onclick="linkChild()">Link</button>
+        </div>
+        <div class="success-msg" id="linkSuccess"></div>
+        <div class="error-msg" id="linkError"></div>
+      </div>`;
+    return;
+  }
+
+  const child=children[currentChildIdx];
+  const info=child.info||{};
+  const sessions=child.sessions||[];
+  const trend=child.trend||[];
+  const op_stats=child.op_stats||[];
+  const notes=child.notes||[];
+  const gm=GMAP[info.ai_group||info.group_label]||GMAP['Unclassified'];
+  const imp=tryJ(info.improvement_areas,[]);
+
+  page.innerHTML=`
+    <!-- Child tabs -->
+    <div class="child-tabs">
+      ${children.map((c,i)=>`
+        <button class="child-tab ${i===currentChildIdx?'active':''}" onclick="switchChild(${i})">
+          <div class="child-avatar">${(c.info.full_name||'?')[0]}</div>
+          <span>${esc(c.info.full_name)}</span>
+        </button>`).join('')}
+      <button class="child-tab" onclick="showLinkForm()" style="border-style:dashed">
+        <span style="font-size:1.2rem">+</span> Link Child
+      </button>
+    </div>
+
+    <!-- Link form (hidden) -->
+    <div id="linkFormDiv" style="display:none;margin-bottom:20px;">
+      <div class="chart-card" style="max-width:440px;">
+        <div class="chart-title">Link Another Child</div>
+        <div class="link-form">
+          <input class="link-input" id="linkRoll2" placeholder="Roll number (e.g. STU003)">
+          <button class="btn-pink" onclick="linkChild2()">Link</button>
+        </div>
+        <div class="success-msg" id="linkSuccess2"></div>
+        <div class="error-msg" id="linkError2"></div>
+      </div>
+    </div>
+
+    <!-- AI Classification -->
+    <div class="ai-card">
+      <div class="ai-icon">${gm.icon}</div>
+      <div class="ai-body">
+        <div class="ai-sub">AI Classification for ${esc(info.full_name)}</div>
+        <div class="ai-name" style="color:${gm.color}">${info.ai_group||info.group_label||'Unclassified'}</div>
+        <div class="ai-desc">${esc(info.grade||'KG')} ${esc(info.section||'')} · Roll: ${esc(info.roll_no||'')}</div>
+      </div>
+      <div class="ai-scores">
+        <div class="ai-score-item"><div class="ai-score-val">${pct(info.accuracy_score)}</div><div class="ai-score-lbl">Accuracy</div></div>
+        <div class="ai-score-item"><div class="ai-score-val">${pct(info.speed_score)}</div><div class="ai-score-lbl">Speed</div></div>
+        <div class="ai-score-item"><div class="ai-score-val">${pct(info.consistency_score)}</div><div class="ai-score-lbl">Consistency</div></div>
+      </div>
+      <div class="ai-rec">Recommended: <strong>${(info.recommended_difficulty||'easy').toUpperCase()}</strong></div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card"><span class="stat-icon">🎮</span><div class="stat-val">${info.total_sessions||0}</div><div class="stat-lbl">Sessions Played</div></div>
+      <div class="stat-card"><span class="stat-icon">🏆</span><div class="stat-val">${num(info.total_score||0)}</div><div class="stat-lbl">Total Score</div></div>
+      <div class="stat-card"><span class="stat-icon">🎯</span><div class="stat-val">${pct(info.avg_accuracy||0)}</div><div class="stat-lbl">Avg Accuracy</div></div>
+      <div class="stat-card"><span class="stat-icon">📈</span><div class="stat-val">Lvl ${info.current_level||1}</div><div class="stat-lbl">Current Level</div></div>
+      <div class="stat-card"><span class="stat-icon">⭐</span><div class="stat-val" style="color:${gm.color}">${info.ai_group||'New'}</div><div class="stat-lbl">AI Group</div></div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-2">
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#ff0080"></span>Accuracy Over Time</div>
+        <div class="chart-wrap"><canvas id="accChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#00c8ff"></span>Score History</div>
+        <div class="chart-wrap"><canvas id="scoreChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="charts-2">
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#ffcc00"></span>Operator Accuracy</div>
+        <div id="opBars"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#ff4060"></span>Areas to Improve</div>
+        <div id="impDiv"></div>
+      </div>
+    </div>
+
+    <!-- Teacher notes -->
+    <div class="sec-hdr"><div class="sec-ttl">Teacher Notes</div><div class="sec-line"></div></div>
+    <div class="charts-2">
+      <div class="chart-card">
+        ${notes.length?notes.map(n=>`<div class="note-item">
+          <div class="note-text">${esc(n.note)}</div>
+          <div class="note-meta">By: <strong style="color:#c4b5fd">${esc(n.teacher_name||'Teacher')}</strong> · ${fmtD(n.created_at)}</div>
+        </div>`).join(''):'<div style="color:#6080a0;padding:10px">No notes from teacher yet.</div>'}
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#a855f7"></span>Announcements</div>
+        ${ann.length?ann.map(a=>`<div class="ann-item">
+          <div class="ann-title">${esc(a.title)}</div>
+          <div class="ann-body">${esc(a.body)}</div>
+          <div class="ann-date">${fmtD(a.created_at)}</div>
+        </div>`).join(''):'<div style="color:#6080a0;font-size:.85rem;padding:8px">No announcements.</div>'}
+      </div>
+    </div>
+
+    <!-- Sessions -->
+    <div class="sec-hdr"><div class="sec-ttl">Recent Game Sessions</div><div class="sec-line"></div></div>
+    <div class="chart-card" style="overflow-x:auto">
+      <table class="tbl"><thead><tr>
+        <th>Game</th><th>Date</th><th>Score</th><th>Accuracy</th><th>Difficulty</th><th>Time</th>
+      </tr></thead><tbody>
+      ${sessions.map(s=>`<tr>
+        <td style="font-weight:600;color:#e0f0ff">${s.game_type||'—'}</td>
+        <td style="color:#6080a0">${fmtD(s.started_at)}</td>
+        <td style="font-family:'Orbitron',sans-serif;color:#ff0080;font-weight:700">${num(s.score||0)}</td>
+        <td style="color:#00ff88">${s.accuracy!=null?Math.round(s.accuracy)+'%':'—'}</td>
+        <td style="color:${{easy:'#00ff88',medium:'#ffcc00',hard:'#ff4060'}[s.difficulty]||'#6080a0'}">${(s.difficulty||'—').toUpperCase()}</td>
+        <td style="color:#6080a0">${s.time_taken?Math.round(s.time_taken)+'s':'—'}</td>
+      </tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:#6080a0;padding:24px">No sessions yet.</td></tr>'}
+      </tbody></table>
+    </div>`;
+
+  // Draw charts
+  const tl=trend.map(t=>t.date?t.date.slice(5):'');
+  const ta=trend.map(t=>Math.round(t.avg_acc||0));
+  dc('acc');charts['acc']=new Chart(document.getElementById('accChart'),{
+    type:'line',data:{labels:tl.length?tl:['—'],datasets:[{label:'Accuracy %',data:ta.length?ta:[0],
+      borderColor:'#ff0080',backgroundColor:'rgba(255,0,128,.07)',tension:.4,fill:true,pointRadius:3,borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(2,8,24,.9)',borderColor:'rgba(255,0,128,.2)',borderWidth:1,titleColor:'#ff0080',bodyColor:'#a0c0e0'}},
+      scales:{x:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#6080a0'}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6080a0'},suggestedMin:0,suggestedMax:100}}}});
+
+  const sr=sessions.slice(0,8).reverse();
+  dc('score');charts['score']=new Chart(document.getElementById('scoreChart'),{
+    type:'bar',data:{labels:sr.map((_,i)=>'#'+(i+1)),datasets:[{label:'Score',data:sr.map(s=>s.score||0),
+      backgroundColor:'rgba(255,0,128,.6)',borderRadius:6,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(2,8,24,.9)',borderColor:'rgba(255,0,128,.2)',borderWidth:1}},
+      scales:{x:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#6080a0'}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6080a0'}}}}});
+
+  // Op bars
+  const opDefs=[{op:'+',color:'#00c8ff'},{op:'-',color:'#ff6600'},{op:'×',color:'#ffcc00'},{op:'÷',color:'#a855f7'}];
+  document.getElementById('opBars').innerHTML=opDefs.map(def=>{
+    const f=op_stats.find(o=>o.operator_used===def.op);
+    const acc=f?Math.round((f.correct||0)/(f.total||1)*100):0;
+    return `<div class="op-row"><span class="op-sym" style="color:${def.color}">${def.op}</span>
+      <div class="op-bg"><div class="op-fill" style="width:${acc}%;background:${def.color}"></div></div>
+      <span class="op-pct">${f?acc+'%':'—'}</span></div>`;
+  }).join('');
+
+  // Improvement
+  const impD=document.getElementById('impDiv');
+  if(imp.length){impD.innerHTML=imp.map(i=>`<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:rgba(255,64,96,.05);border:1px solid rgba(255,64,96,.12);border-radius:9px;margin-bottom:7px;font-size:.82rem;color:#c0d0e0">⚠️ ${esc(i)}</div>`).join('');}
+  else{impD.innerHTML='<div style="padding:9px 12px;background:rgba(0,255,136,.05);border:1px solid rgba(0,255,136,.15);border-radius:9px;font-size:.82rem;color:#00ff88">✅ No major weaknesses detected!</div>';}
+}
+
+function switchChild(idx){currentChildIdx=idx;renderAll();}
+function showLinkForm(){const d=document.getElementById('linkFormDiv');if(d)d.style.display=d.style.display==='none'?'block':'none';}
+
+async function linkChild(){
+  const roll=(document.getElementById('linkRoll')?.value||'').trim();
+  if(!roll)return;
+  const r=await post('/api/parent/link_child',{roll_no:roll});
+  if(r.success){showMsg('linkSuccess','Linked: '+r.child_name,'success');setTimeout(()=>loadData(),1000);}
+  else showMsg('linkError',r.error||'Failed','error');
+}
+async function linkChild2(){
+  const roll=(document.getElementById('linkRoll2')?.value||'').trim();
+  if(!roll)return;
+  const r=await post('/api/parent/link_child',{roll_no:roll});
+  if(r.success){showMsg('linkSuccess2','Linked: '+r.child_name,'success');setTimeout(()=>loadData(),1000);}
+  else showMsg('linkError2',r.error||'Failed','error');
+}
+
+async function post(url,body){try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});return await r.json();}catch(e){return{success:false,error:'Network error'};}}
+function showMsg(id,msg,type){const el=document.getElementById(id);if(!el)return;el.textContent=msg;el.style.display='block';setTimeout(()=>el&&(el.style.display='none'),4000);}
+
+loadData();
+</script>{% endraw %}
+</body>
+</html>

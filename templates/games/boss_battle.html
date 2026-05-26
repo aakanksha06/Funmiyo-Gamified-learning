@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Funmiyo SkillQuest — Math Boss!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/global.css">
+<script src="/static/js/adaptive_engine.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#1a0d2e;overflow:hidden;font-family:'Nunito',sans-serif;}
+#bossCanvas{display:block;position:fixed;top:0;left:0;}
+.hud-top{position:fixed;top:0;left:0;right:0;z-index:50;padding:10px 16px;background:linear-gradient(180deg,rgba(26,13,46,.97) 0%,transparent 100%);pointer-events:none;}
+.hud-back{pointer-events:all;display:inline-block;font-family:'Fredoka One',cursive;font-size:.78rem;color:rgba(168,85,247,.85);text-decoration:none;border:2px solid rgba(168,85,247,.3);padding:7px 16px;border-radius:50px;transition:all .3s;margin-bottom:8px;}
+.hud-back:hover{color:#a855f7;border-color:#a855f7;background:rgba(168,85,247,.1);}
+.hp-row{display:flex;align-items:center;gap:12px;}
+.hp-section{flex:1;}
+.hp-label{font-family:'Fredoka One',cursive;font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:4px;}
+.hp-bar-wrap{height:18px;background:rgba(255,255,255,.07);border-radius:9px;overflow:hidden;border:1px solid rgba(255,255,255,.1);}
+.hp-fill{height:100%;border-radius:9px;transition:width .4s ease;}
+.player-fill{background:linear-gradient(90deg,#00e676,#4ecdc4);}
+.boss-fill{background:linear-gradient(90deg,#ff6b35,#ff4db8);}
+.hp-text{font-family:'Fredoka One',cursive;font-size:.72rem;color:rgba(255,255,255,.55);margin-top:3px;text-align:right;}
+.vs-tag{font-family:'Fredoka One',cursive;font-size:1.4rem;color:#ffd700;text-shadow:0 0 20px rgba(255,215,0,.6);padding:0 12px;flex-shrink:0;}
+.hud-pills{display:flex;gap:8px;margin-top:8px;}
+.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:50px;padding:5px 12px;display:flex;align-items:center;gap:5px;}
+.pill-icon{font-size:.9rem;}
+.pill-val{font-family:'Fredoka One',cursive;font-size:.9rem;color:#fff;}
+.pill-lbl{font-size:.52rem;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;}
+.boss-name-bar{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:60;padding:4px 22px;font-family:'Fredoka One',cursive;font-size:.75rem;color:rgba(255,107,53,.7);letter-spacing:2px;text-transform:uppercase;background:rgba(26,13,46,.7);border-bottom:1px solid rgba(255,107,53,.12);border-radius:0 0 12px 12px;pointer-events:none;}
+.attack-panel{position:fixed;bottom:0;left:0;right:0;z-index:50;padding:10px 16px 18px;background:linear-gradient(0deg,rgba(26,13,46,.98) 0%,transparent 100%);display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;}
+.attack-lbl{font-family:'Fredoka One',cursive;font-size:.95rem;color:rgba(255,107,53,.8);min-height:22px;text-align:center;}
+.combo-row{display:flex;align-items:center;gap:8px;}
+.combo-slot{width:62px;height:62px;border-radius:14px;border:2px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.combo-slot.filled{border-color:rgba(255,107,53,.6);background:rgba(255,107,53,.1);}
+.slot-val{font-family:'Fredoka One',cursive;font-size:1.3rem;color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,.6);}
+.combo-op{font-family:'Fredoka One',cursive;font-size:1.1rem;color:rgba(255,255,255,.3);}
+.combo-result{font-family:'Fredoka One',cursive;font-size:1.1rem;padding:8px 18px;border:2px solid rgba(255,107,53,.3);border-radius:12px;background:rgba(255,107,53,.07);color:#ff6b35;min-width:78px;text-align:center;}
+.num-grid{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;pointer-events:all;}
+.num-btn{width:58px;height:58px;border-radius:14px;font-family:'Fredoka One',cursive;font-size:1.1rem;cursor:pointer;border:2px solid;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.num-btn:hover{transform:translateY(-3px) scale(1.05);}
+.num-btn:active{transform:scale(.92);}
+.num-btn.used{opacity:.25;pointer-events:none;}
+.act-btns{display:flex;gap:10px;pointer-events:all;}
+.act-btn{padding:10px 22px;border-radius:50px;font-family:'Fredoka One',cursive;font-size:.85rem;cursor:pointer;border:2px solid;transition:all .3s;}
+.act-fire{border-color:rgba(255,107,53,.5);color:#ff6b35;background:rgba(255,107,53,.08);}
+.act-fire:hover{border-color:#ff6b35;background:rgba(255,107,53,.2);}
+.act-clear{border-color:rgba(255,255,255,.18);color:rgba(255,255,255,.4);background:transparent;}
+.act-clear:hover{border-color:rgba(255,255,255,.35);color:#fff;}
+.mode-bar{position:fixed;top:170px;right:14px;z-index:60;display:flex;flex-direction:column;gap:5px;pointer-events:all;}
+.mode-pill{padding:5px 12px;border-radius:50px;font-family:'Fredoka One',cursive;font-size:.68rem;border:2px solid;cursor:pointer;transition:all .3s;}
+.mode-pill.easy{border-color:rgba(0,230,118,.32);color:rgba(0,230,118,.5);}
+.mode-pill.easy.active{background:rgba(0,230,118,.13);color:#00e676;border-color:#00e676;}
+.mode-pill.medium{border-color:rgba(255,215,0,.32);color:rgba(255,215,0,.5);}
+.mode-pill.medium.active{background:rgba(255,215,0,.13);color:#ffd700;border-color:#ffd700;}
+.mode-pill.hard{border-color:rgba(255,107,53,.32);color:rgba(255,107,53,.5);}
+.mode-pill.hard.active{background:rgba(255,107,53,.13);color:#ff6b35;border-color:#ff6b35;}
+.mode-pill.adaptive{border-color:rgba(168,85,247,.32);color:rgba(168,85,247,.5);}
+.mode-pill.adaptive.active{background:rgba(168,85,247,.13);color:#a855f7;border-color:#a855f7;}
+.phase-ann{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Fredoka One',cursive;font-size:2.4rem;pointer-events:none;z-index:80;opacity:0;text-shadow:0 0 40px currentColor;}
+.phase-ann.show{animation:phAnn 2s ease forwards;}
+@keyframes phAnn{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}70%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(.9)}}
+.result-overlay{position:fixed;inset:0;z-index:500;background:rgba(26,13,46,.92);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .4s;}
+.result-overlay.show{opacity:1;pointer-events:all;}
+.result-card{background:#1a0d2e;border:2px solid rgba(168,85,247,.35);border-radius:28px;padding:44px 38px;text-align:center;max-width:440px;width:92%;box-shadow:0 0 80px rgba(168,85,247,.15);transform:scale(.85);transition:transform .4s cubic-bezier(.16,1,.3,1);}
+.result-overlay.show .result-card{transform:scale(1);}
+.result-emoji{font-size:4rem;display:block;margin-bottom:10px;}
+.result-title{font-family:'Fredoka One',cursive;font-size:2rem;margin-bottom:6px;}
+.result-sub{color:rgba(255,255,255,.45);font-size:.88rem;font-weight:700;margin-bottom:18px;line-height:1.5;}
+.result-stars{font-size:2.4rem;margin-bottom:18px;letter-spacing:5px;}
+.result-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px;}
+.r-stat{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:12px;}
+.r-val{font-family:'Fredoka One',cursive;font-size:1.4rem;color:#a855f7;}
+.r-lbl{font-size:.64rem;color:rgba(255,255,255,.35);margin-top:2px;text-transform:uppercase;font-weight:700;}
+.result-btns{display:flex;gap:10px;}
+.result-btn{flex:1;padding:13px;border-radius:50px;font-family:'Fredoka One',cursive;font-size:.98rem;cursor:pointer;border:none;transition:all .3s;}
+.result-btn.primary{background:linear-gradient(135deg,#a855f7,#ff4db8);color:#fff;}
+.result-btn.secondary{background:transparent;border:2px solid rgba(255,255,255,.18);color:rgba(255,255,255,.45);}
+.result-btn:hover{transform:translateY(-2px);}
+@keyframes dmgPop{0%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}100%{opacity:0;transform:translateX(-50%) translateY(-80px) scale(.5)}}
+</style>
+</head>
+<body>
+<canvas id="bossCanvas"></canvas>
+<div id="adaptHUDContainer"></div>
+<div class="boss-name-bar" id="bossNameBar">BOSS: MATH MONSTER 👾</div>
+<div class="hud-top">
+  <a href="/student/hub" class="hud-back">🏠 Home</a>
+  <div class="hp-row">
+    <div class="hp-section">
+      <div class="hp-label">⚔️ Your HP</div>
+      <div class="hp-bar-wrap"><div class="hp-fill player-fill" id="playerHpFill" style="width:100%"></div></div>
+      <div class="hp-text"><span id="playerHpTxt">100</span>/100</div>
+    </div>
+    <div class="vs-tag">VS</div>
+    <div class="hp-section">
+      <div class="hp-label">Boss HP 👾</div>
+      <div class="hp-bar-wrap"><div class="hp-fill boss-fill" id="bossHpFill" style="width:100%"></div></div>
+      <div class="hp-text"><span id="bossHpTxt">150</span>/<span id="bossHpMax">150</span></div>
+    </div>
+  </div>
+  <div class="hud-pills">
+    <div class="pill"><span class="pill-icon">⭐</span><div><div class="pill-val" id="hudScore">0</div><div class="pill-lbl">Score</div></div></div>
+    <div class="pill"><span class="pill-icon">🏰</span><div><div class="pill-val" id="hudStage">1</div><div class="pill-lbl">Stage</div></div></div>
+    <div class="pill"><span class="pill-icon">🔥</span><div><div class="pill-val" id="hudCombo">x1</div><div class="pill-lbl">Combo</div></div></div>
+    <div class="pill"><span class="pill-icon">⏱️</span><div><div class="pill-val" id="hudTimer">60</div><div class="pill-lbl">Time</div></div></div>
+  </div>
+</div>
+<div class="mode-bar">
+  <div class="mode-pill easy active" onclick="setMode('easy')">😊 Easy</div>
+  <div class="mode-pill medium"      onclick="setMode('medium')">🌟 Medium</div>
+  <div class="mode-pill hard"        onclick="setMode('hard')">🔥 Hard</div>
+  <div class="mode-pill adaptive"    onclick="setMode('adaptive')">🤖 AI</div>
+</div>
+<div class="attack-panel">
+  <div class="attack-lbl" id="attackLbl">Build your attack! Pick numbers below!</div>
+  <div class="combo-row" id="comboRow"></div>
+  <div class="num-grid" id="numGrid"></div>
+  <div class="act-btns">
+    <button class="act-btn act-fire"  onclick="fireAttack()">⚡ ATTACK!</button>
+    <button class="act-btn act-clear" onclick="clearSlots()">✕ Clear</button>
+  </div>
+</div>
+<div class="phase-ann" id="phaseAnn"></div>
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-card">
+    <span class="result-emoji" id="rEmoji">⚔️</span>
+    <div class="result-title" id="rTitle">Victory!</div>
+    <div class="result-sub"   id="rSub">You defeated the boss!</div>
+    <div class="result-stars" id="rStars">⭐⭐⭐</div>
+    <div class="result-stats">
+      <div class="r-stat"><div class="r-val" id="rScore">0</div><div class="r-lbl">Score</div></div>
+      <div class="r-stat"><div class="r-val" id="rStage">1</div><div class="r-lbl">Stage</div></div>
+      <div class="r-stat"><div class="r-val" id="rAcc">0%</div><div class="r-lbl">Correct</div></div>
+      <div class="r-stat"><div class="r-val" id="rCombo">x1</div><div class="r-lbl">Best Combo</div></div>
+    </div>
+    <div class="result-btns">
+      <button class="result-btn primary" onclick="restartGame()">Fight Again! ⚔️</button>
+      <button class="result-btn secondary" onclick="window.location.href='/student/hub'">🏠 Home</button>
+    </div>
+  </div>
+</div>
+<script>
+'use strict';
+const canvas=document.getElementById('bossCanvas'),ctx=canvas.getContext('2d');
+let W=canvas.width=window.innerWidth,H=canvas.height=window.innerHeight;
+window.addEventListener('resize',()=>{W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;});
+
+let sessionId=null,sessionStart=Date.now(),lastActionTime=Date.now();
+let stage=0,boss=null,bossHp=0,bossMaxHp=0;
+let playerHp=100,score=0,combo=1,maxCombo=1;
+let totalAttempts=0,correctAttempts=0,gameActive=false;
+let timerLeft=60,timerInterval=null,bossAtkTimer=null,frameCount=0;
+let operatorCounts={};
+let slots=[],slotCount=2,bossTarget=0,bossOp='+',bossA=0,bossB=0;
+let availNums=[],pickedIdx=[];
+let particles=[],stars=[],bossHitFlash=0,playerHitFlash=0,shakeFrames=0,bossAnimPhase=0;
+let _aiReady=false;
+const ai=new AdaptiveEngine('boss');
+ai.onLevelChange=(s,reason,fb)=>{if(_aiReady){applyBossAdaptive(s);updateAdaptiveHUD(s);}if(fb)showAdaptFeedback(fb);};
+
+// Kid-friendly boss definitions
+const BOSSES=[
+  {name:'ADDITION MONSTER 🔢', hp:120, ops:['+'],        numRange:[1,5],  atk:8,  atkInt:8000, reqNums:2, color:'#ff6b6b', emoji:'🐛'},
+  {name:'SUBTRACTION GIANT ➖', hp:200, ops:['+','-'],    numRange:[1,10], atk:12, atkInt:7000, reqNums:2, color:'#ff9f43', emoji:'🦕'},
+  {name:'TIMES DRAGON 🐉',     hp:300, ops:['+','-','×'],numRange:[1,10], atk:16, atkInt:6000, reqNums:2, color:'#a855f7', emoji:'🐲'},
+  {name:'MATH WIZARD 🧙',      hp:400, ops:['+','-','×','÷'],numRange:[1,12],atk:20,atkInt:5000,reqNums:3,color:'#4ecdc4', emoji:'🧙'},
+];
+
+let gradeConfig={ops:['+'],max_num:10,time:60};
+let currentMode='easy',cfg={};
+function applyBossAdaptive(s){if(boss){boss.atkInt=s.bossAttackInterval||7000;boss.atk=Math.round(8+(s.adaptiveLevel||0)*5);generateBossEq();generateNumGrid();clearSlots();rebuildComboRow();}}
+function setMode(m){currentMode=m;ai.mode=m;document.querySelectorAll('.mode-pill').forEach(el=>el.classList.toggle('active',el.classList.contains(m)));if(m==='adaptive'){const s=ai.getCurrentSettings();applyBossAdaptive(s);updateAdaptiveHUD(s);}else{const h=document.getElementById('adaptiveHUD');if(h)h.style.display='none';}}
+
+function initStars(){stars=[];for(let i=0;i<120;i++)stars.push({x:Math.random()*W,y:Math.random()*H,sz:Math.random()*1.8+.3,spd:Math.random()*.3+.05,a:Math.random()*.55+.15});}
+
+async function init(){
+  createAdaptiveHUD('adaptHUDContainer');gradeConfig=await ai.loadGradeConfig();await ai.loadProfile();
+  try{const r=await fetch('/api/session/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({game_type:'boss',difficulty:currentMode,level:1})});const d=await r.json();sessionId=d.session_id;}catch(e){}
+  initStars();_aiReady=true;loadBoss(0);gameActive=true;sessionStart=Date.now();requestAnimationFrame(gameLoop);
+}
+
+function loadBoss(idx){
+  if(idx>=BOSSES.length){endGame('win');return;}
+  stage=idx;boss={...BOSSES[idx]};
+  // Adjust for grade
+  const gradeMax=gradeConfig.max_num||10;
+  boss.numRange=[1,Math.min(boss.numRange[1],gradeMax)];
+  boss.ops=boss.ops.filter(o=>gradeConfig.ops.includes(o));
+  if(!boss.ops.length)boss.ops=['+'];
+  bossHp=bossMaxHp=boss.hp;slotCount=boss.reqNums;
+  slots=Array(slotCount).fill(null);pickedIdx=[];
+  document.getElementById('bossNameBar').textContent=`BOSS: ${boss.name}`;
+  document.getElementById('hudStage').textContent=idx+1;
+  updateHpBars();generateBossEq();generateNumGrid();rebuildComboRow();
+  announcePhase(`Stage ${idx+1}: ${boss.name}`,boss.color);
+  clearInterval(bossAtkTimer);
+  bossAtkTimer=setInterval(()=>{if(gameActive)triggerBossAtk();},boss.atkInt);
+  startTimer();
+}
+
+function generateBossEq(){
+  const op=boss.ops[Math.floor(Math.random()*boss.ops.length)];
+  bossOp=op;
+  const [mn,mx]=boss.numRange;
+  bossA=randInt(mn,mx);bossB=randInt(mn,mx);
+  if(op==='-'&&bossA<bossB){const t=bossA;bossA=bossB;bossB=t;}
+  if(op==='÷'){bossB=randInt(1,Math.min(5,mx));bossA=bossB*randInt(1,Math.min(mx,8));if(bossA>60)bossA=bossB*randInt(1,4);}
+  switch(op){case'+':bossTarget=bossA+bossB;break;case'-':bossTarget=bossA-bossB;break;case'×':bossTarget=bossA*bossB;break;case'÷':bossTarget=bossA/bossB;break;}
+  updateAtkLbl();
+}
+
+function updateAtkLbl(){
+  const opNames={'+':'add','-':'subtract','×':'multiply','÷':'divide'};
+  document.getElementById('attackLbl').textContent=slotCount===2
+    ?`${bossA} ${bossOp} ${bossB} = ? — Pick the answer! 🎯`
+    :`Pick ${slotCount} numbers that ${opNames[bossOp]||bossOp} to make ${bossTarget}! 🎯`;
+}
+
+function generateNumGrid(){
+  const [mn,mx]=boss.numRange;
+  availNums=[];
+  // Always include the correct answer numbers
+  const needed=slotCount===2?[bossA,bossB]:[bossA,bossB,randInt(mn,mx)];
+  for(const n of needed)availNums.push(n);
+  while(availNums.length<9)availNums.push(randInt(mn,mx));
+  shuffle(availNums);renderNumGrid();
+}
+
+function renderNumGrid(){
+  const g=document.getElementById('numGrid');g.innerHTML='';
+  const colors=[{b:'#4ecdc4',bg:'rgba(78,205,196,.12)',c:'#4ecdc4'},{b:'#ff4db8',bg:'rgba(255,77,184,.12)',c:'#ff4db8'},{b:'#ffd700',bg:'rgba(255,215,0,.12)',c:'#ffd700'},{b:'#a855f7',bg:'rgba(168,85,247,.12)',c:'#a855f7'},{b:'#ff6b35',bg:'rgba(255,107,53,.12)',c:'#ff6b35'},{b:'#00e676',bg:'rgba(0,230,118,.12)',c:'#00e676'},{b:'#44a8ff',bg:'rgba(68,168,255,.12)',c:'#44a8ff'},{b:'#ff6b6b',bg:'rgba(255,107,107,.12)',c:'#ff6b6b'},{b:'#ffd700',bg:'rgba(255,215,0,.12)',c:'#ffd700'}];
+  availNums.forEach((val,i)=>{
+    const btn=document.createElement('button');btn.className='num-btn';btn.textContent=val;btn.dataset.idx=i;
+    const cl=colors[i%colors.length];btn.style.cssText=`border-color:${cl.b};background:${cl.bg};color:${cl.c};`;
+    btn.addEventListener('click',()=>selectNum(i,val,btn,cl.c));
+    if(pickedIdx.includes(i))btn.classList.add('used');
+    g.appendChild(btn);
+  });
+}
+
+function rebuildComboRow(){
+  const row=document.getElementById('comboRow');row.innerHTML='';
+  for(let i=0;i<slotCount;i++){
+    if(i>0){const op=document.createElement('div');op.className='combo-op';op.textContent=bossOp;row.appendChild(op);}
+    const slot=document.createElement('div');slot.className='combo-slot';slot.id=`slot${i}`;
+    slot.innerHTML=`<span class="slot-val" id="slotVal${i}">?</span>`;
+    row.appendChild(slot);
+  }
+  const eq=document.createElement('div');eq.className='combo-op';eq.textContent='=';row.appendChild(eq);
+  const res=document.createElement('div');res.className='combo-result';res.id='comboResult';res.textContent='?';row.appendChild(res);
+}
+
+function selectNum(idx,val,btn,color){
+  if(!gameActive)return;
+  if(pickedIdx.includes(idx))return;
+  const si=slots.indexOf(null);if(si===-1)return;
+  slots[si]=val;pickedIdx.push(idx);btn.classList.add('used');
+  updateSlotsUI();
+  if(!slots.includes(null))setTimeout(fireAttack,250);
+}
+
+function updateSlotsUI(){
+  for(let i=0;i<slotCount;i++){
+    const slot=document.getElementById(`slot${i}`),valEl=document.getElementById(`slotVal${i}`);
+    if(!slot||!valEl)continue;
+    if(slots[i]!==null){slot.classList.add('filled');valEl.textContent=slots[i];}
+    else{slot.classList.remove('filled');valEl.textContent='?';}
+  }
+  const filled=slots.filter(v=>v!==null);
+  if(filled.length>=2){
+    let res=filled[0];
+    for(let i=1;i<filled.length;i++){switch(bossOp){case'+':res+=filled[i];break;case'-':res-=filled[i];break;case'×':res*=filled[i];break;case'÷':res=filled[i]!==0?res/filled[i]:null;break;}}
+    const resEl=document.getElementById('comboResult');
+    if(resEl){resEl.textContent=res!==null?res:'?';resEl.style.color=Math.round(res)===bossTarget?'#00e676':'#ff6b35';}
+  }
+}
+
+function clearSlots(){slots=Array(slotCount).fill(null);pickedIdx=[];renderNumGrid();updateSlotsUI();}
+
+function fireAttack(){
+  if(!gameActive)return;
+  if(slots.includes(null)){flashLbl('Fill all the slots first! 😊','#ff6b35');return;}
+  totalAttempts++;lastActionTime=Date.now();
+  let result=slots[0];
+  for(let i=1;i<slotCount;i++){switch(bossOp){case'+':result+=slots[i];break;case'-':result-=slots[i];break;case'×':result*=slots[i];break;case'÷':result=slots[i]!==0?result/slots[i]:-999;break;}}
+  if(Math.round(result)===bossTarget){
+    correctAttempts++;combo++;if(combo>maxCombo)maxCombo=combo;
+    const dmg=Math.round(20+combo*4+(stage+1)*8);
+    bossHp=Math.max(0,bossHp-dmg);score+=dmg*combo*8;
+    operatorCounts[bossOp]=(operatorCounts[bossOp]||0)+1;
+    bossHitFlash=18;spawnParts(W*.5,H*.36,boss.color,18);
+    spawnDmgPop(dmg,W*.5,H*.3);
+    flashLbl(`⚔️ Hit! −${dmg} HP to boss! Combo x${combo}! 🔥`,'#00e676');
+    document.getElementById('hudCombo').textContent='x'+combo;
+    document.getElementById('hudScore').textContent=score.toLocaleString();
+    ai.record(true,(Date.now()-lastActionTime)/1000);
+    logAction({action_type:'attack',success:true,operator_used:bossOp,operand1:bossA,operand2:bossB,target_value:bossTarget,result_value:result,combo_count:combo,score_delta:dmg*combo*8});
+    updateHpBars();
+    if(bossHp<=0){clearInterval(bossAtkTimer);clearInterval(timerInterval);setTimeout(()=>{score+=800*(stage+1);if(stage+1>=BOSSES.length)endGame('win');else loadBoss(stage+1);},1600);return;}
+    generateBossEq();generateNumGrid();clearSlots();rebuildComboRow();
+  }else{
+    combo=1;document.getElementById('hudCombo').textContent='x1';
+    shakeFrames=10;flashLbl(`❌ Wrong! The answer was ${bossTarget}. Try again! 😊`,'#ff6b35');
+    playerHp=Math.max(0,playerHp-4);playerHitFlash=10;updateHpBars();
+    ai.record(false,(Date.now()-lastActionTime)/1000);
+    logAction({action_type:'attack',success:false,operator_used:bossOp,target_value:bossTarget,result_value:result});
+    if(playerHp<=0){endGame('dead');return;}
+  }
+  clearSlots();
+}
+
+function flashLbl(msg,color){const el=document.getElementById('attackLbl');el.textContent=msg;el.style.color=color;setTimeout(()=>{el.style.color='rgba(255,107,53,.8)';updateAtkLbl();},2200);}
+
+function triggerBossAtk(){
+  if(!gameActive)return;
+  setTimeout(()=>{
+    if(!gameActive)return;
+    playerHp=Math.max(0,playerHp-boss.atk);playerHitFlash=22;shakeFrames=14;
+    spawnParts(W*.5,H*.72,'#ff6b35',12);
+    flashLbl(`💥 Boss attacked! −${boss.atk} HP to you!`,'#ff4db8');
+    updateHpBars();if(playerHp<=0)endGame('dead');
+  },700);
+}
+
+function updateHpBars(){
+  const pp=Math.max(0,(playerHp/100)*100),bp=Math.max(0,(bossHp/bossMaxHp)*100);
+  document.getElementById('playerHpFill').style.width=pp+'%';
+  document.getElementById('bossHpFill').style.width=bp+'%';
+  document.getElementById('playerHpTxt').textContent=Math.round(playerHp);
+  document.getElementById('bossHpTxt').textContent=Math.round(bossHp);
+  document.getElementById('bossHpMax').textContent=bossMaxHp;
+  document.getElementById('playerHpFill').style.background=pp<30?'linear-gradient(90deg,#ff6b35,#ff4db8)':'linear-gradient(90deg,#00e676,#4ecdc4)';
+}
+
+function startTimer(){
+  clearInterval(timerInterval);timerLeft=60;
+  timerInterval=setInterval(()=>{
+    if(!gameActive)return;timerLeft--;
+    const el=document.getElementById('hudTimer');el.textContent=timerLeft;
+    el.style.color=timerLeft<=15?'#ff6b35':'#fff';
+    if(timerLeft<=0){clearInterval(timerInterval);endGame('timeout');}
+  },1000);
+}
+
+function spawnParts(x,y,color,n){for(let i=0;i<n;i++){const a=(Math.PI*2/n)*i+Math.random()*.5,spd=3+Math.random()*6;particles.push({x,y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,life:1,size:3+Math.random()*5,color,decay:.022+Math.random()*.018});}}
+function spawnDmgPop(dmg,x,y){const div=document.createElement('div');div.style.cssText=`position:fixed;left:${x}px;top:${y}px;transform:translateX(-50%);font-family:'Fredoka One',cursive;font-size:2rem;color:#ff6b35;text-shadow:0 0 20px rgba(255,107,53,.8);pointer-events:none;z-index:80;animation:dmgPop 1.3s ease-out forwards;`;div.textContent='-'+dmg+'💥';document.body.appendChild(div);setTimeout(()=>div.remove(),1300);}
+function announcePhase(t,color){const el=document.getElementById('phaseAnn');el.textContent=t;el.style.color=color;el.classList.remove('show');void el.offsetWidth;el.classList.add('show');}
+
+// Draw boss - big fun emoji character
+function drawBoss(){
+  const bx=W*.5,by=H*.33;const t=frameCount*.04;const bob=Math.sin(t)*10;
+  ctx.save();ctx.translate(bx,by+bob);
+  if(bossHitFlash>0){ctx.globalAlpha=.3+Math.random()*.4;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(0,0,90,0,Math.PI*2);ctx.fill();bossHitFlash--;}ctx.globalAlpha=1;
+  // Glow aura
+  const aura=ctx.createRadialGradient(0,0,20,0,0,110);
+  aura.addColorStop(0,(boss?.color||'#a855f7')+'44');aura.addColorStop(1,'transparent');
+  ctx.fillStyle=aura;ctx.beginPath();ctx.arc(0,0,110,0,Math.PI*2);ctx.fill();
+  // Boss emoji (big)
+  ctx.font='100px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.shadowColor=boss?.color||'#a855f7';ctx.shadowBlur=30;ctx.fillText(boss?.emoji||'👾',0,0);
+  // HP bar above
+  ctx.shadowBlur=0;ctx.fillStyle='rgba(13,15,43,.7)';ctx.beginPath();ctx.roundRect(-60,-80,120,16,8);ctx.fill();
+  const hpPct=bossHp/bossMaxHp;
+  const hpG=ctx.createLinearGradient(-56,-80,56,-80);hpG.addColorStop(0,'#ff6b35');hpG.addColorStop(1,'#ff4db8');
+  ctx.fillStyle=hpG;ctx.beginPath();ctx.roundRect(-56,-76,Math.max(0,hpPct*112),8,4);ctx.fill();
+  // Boss equation
+  ctx.fillStyle='rgba(13,15,43,.75)';ctx.beginPath();ctx.roundRect(-80,62,160,28,10);ctx.fill();
+  ctx.fillStyle='#ffd700';ctx.font=`bold 15px 'Fredoka One',cursive`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(`${bossA} ${bossOp} ${bossB} = ?`,0,76);
+  ctx.restore();
+}
+
+// Draw player wizard character
+function drawPlayer(){
+  const px=W*.5,py=H*.72;const t=frameCount*.06;
+  ctx.save();ctx.translate(px,py+Math.sin(t)*4);
+  if(playerHitFlash>0){ctx.globalAlpha=.35+Math.random()*.3;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(0,0,38,0,Math.PI*2);ctx.fill();playerHitFlash--;}ctx.globalAlpha=1;
+  ctx.shadowColor='#4ecdc4';ctx.shadowBlur=16;
+  ctx.font='64px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🧒',0,0);
+  // Wand
+  ctx.strokeStyle='#ffd700';ctx.lineWidth=3;ctx.shadowColor='#ffd700';ctx.shadowBlur=10;
+  ctx.beginPath();ctx.moveTo(18,0);ctx.lineTo(46,-28);ctx.stroke();
+  ctx.fillStyle='#ffd700';ctx.beginPath();ctx.arc(46,-28,7,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+
+function drawBg(){
+  ctx.fillStyle='#1a0d2e';ctx.fillRect(0,0,W,H);
+  // Stars
+  for(const s of stars){s.y+=s.spd;if(s.y>H){s.y=0;s.x=Math.random()*W;}ctx.globalAlpha=s.a*(0.5+Math.sin(frameCount*.02+s.x)*.4);ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(s.x,s.y,s.sz,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;
+  // Arena glow
+  const ag=ctx.createRadialGradient(W/2,H/2,50,W/2,H/2,W*.5);ag.addColorStop(0,'rgba(100,0,80,.06)');ag.addColorStop(1,'transparent');ctx.fillStyle=ag;ctx.fillRect(0,0,W,H);
+  // Divider
+  ctx.strokeStyle='rgba(168,85,247,.1)';ctx.lineWidth=1;ctx.setLineDash([12,12]);ctx.beginPath();ctx.moveTo(0,H*.56);ctx.lineTo(W,H*.56);ctx.stroke();ctx.setLineDash([]);
+}
+
+function gameLoop(){
+  if(shakeFrames>0){ctx.save();ctx.translate((Math.random()-.5)*7,(Math.random()-.5)*7);shakeFrames--;}
+  drawBg();
+  for(const p of particles){ctx.save();ctx.globalAlpha=p.life;ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=8;ctx.beginPath();ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);ctx.fill();ctx.restore();}
+  if(boss)drawBoss();drawPlayer();
+  if(shakeFrames>=0){try{ctx.restore();}catch(e){}}
+  particles=particles.filter(p=>p.life>0);
+  for(const p of particles){p.x+=p.vx;p.y+=p.vy;p.vy+=.1;p.vx*=.97;p.life-=p.decay;}
+  bossAnimPhase+=.04;frameCount++;
+  requestAnimationFrame(gameLoop);
+}
+
+async function endGame(reason){
+  if(!gameActive)return;gameActive=false;clearInterval(bossAtkTimer);clearInterval(timerInterval);
+  const timeTaken=Math.round((Date.now()-sessionStart)/1000),acc=totalAttempts>0?Math.round(correctAttempts/totalAttempts*100):0;
+  const isWin=reason==='win',stars=isWin?3:acc>=65?2:acc>=40?1:0;
+  try{await fetch('/api/session/end',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sessionId,score,difficulty:currentMode,level:stage+1,time_taken:timeTaken,total_attempts:totalAttempts,correct_attempts:correctAttempts,combo_max:maxCombo,operators_used:operatorCounts})});}catch(e){}
+  document.getElementById('rEmoji').textContent=isWin?'🏆':'💀';
+  document.getElementById('rTitle').textContent=isWin?'You Won! 🎉':'Oh no! 😢';
+  document.getElementById('rTitle').style.color=isWin?'#00e676':'#ff6b35';
+  document.getElementById('rSub').textContent=isWin?`You defeated all ${BOSSES.length} bosses! Amazing!`:`You reached stage ${stage+1}. Keep practising!`;
+  document.getElementById('rStars').textContent=['','⭐','⭐⭐','⭐⭐⭐'][stars]||'⭐';
+  document.getElementById('rScore').textContent=score.toLocaleString();document.getElementById('rStage').textContent=stage+1;document.getElementById('rAcc').textContent=acc+'%';document.getElementById('rCombo').textContent='x'+maxCombo;
+  document.getElementById('resultOverlay').classList.add('show');
+}
+
+function restartGame(){document.getElementById('resultOverlay').classList.remove('show');score=0;combo=1;maxCombo=1;totalAttempts=0;correctAttempts=0;playerHp=100;operatorCounts={};particles=[];gameActive=true;sessionStart=Date.now();loadBoss(0);document.getElementById('hudScore').textContent='0';document.getElementById('hudCombo').textContent='x1';document.getElementById('hudTimer').textContent='60';}
+async function logAction(d){if(!sessionId)return;try{await fetch('/api/log/action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sessionId,level:stage+1,difficulty:currentMode,...d})});}catch(e){}}
+
+function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+const sty=document.createElement('style');sty.textContent=`@keyframes dmgPop{0%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}100%{opacity:0;transform:translateX(-50%) translateY(-80px) scale(.5)}}`;document.head.appendChild(sty);
+if(!ctx.roundRect)ctx.roundRect=function(x,y,w,h,r){this.beginPath();this.moveTo(x+r,y);this.arcTo(x+w,y,x+w,y+h,r);this.arcTo(x+w,y+h,x,y+h,r);this.arcTo(x,y+h,x,y,r);this.arcTo(x,y,x+w,y,r);this.closePath();};
+window.addEventListener('load',init);
+</script>
+</body>
+</html>

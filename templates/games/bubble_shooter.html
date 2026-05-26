@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Funmiyo SkillQuest — Bubble Math!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/global.css">
+<script src="/static/js/adaptive_engine.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0d0f2b;overflow:hidden;}
+#gameCanvas{display:block;position:fixed;top:0;left:0;}
+.hud{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;
+  justify-content:space-between;padding:10px 16px;
+  background:linear-gradient(180deg,rgba(13,15,43,.97) 0%,transparent 100%);
+  pointer-events:none;}
+.hud-back{pointer-events:all;font-family:'Fredoka One',cursive;font-size:.78rem;
+  color:rgba(78,205,196,.85);text-decoration:none;
+  border:2px solid rgba(78,205,196,.3);padding:7px 16px;border-radius:50px;transition:all .3s;}
+.hud-back:hover{color:#4ecdc4;border-color:#4ecdc4;background:rgba(78,205,196,.1);}
+.hud-pills{display:flex;gap:8px;}
+.pill{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.13);
+  border-radius:50px;padding:5px 12px;display:flex;align-items:center;gap:5px;}
+.pill-icon{font-size:.9rem;}
+.pill-val{font-family:'Fredoka One',cursive;font-size:.9rem;color:#fff;}
+.pill-lbl{font-size:.52rem;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;}
+.target-box{position:fixed;bottom:115px;left:50%;transform:translateX(-50%);
+  text-align:center;pointer-events:none;}
+.target-lbl{font-size:.68rem;font-weight:800;color:rgba(255,255,255,.38);
+  letter-spacing:2px;text-transform:uppercase;}
+.target-num{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ffd700;
+  text-shadow:0 0 24px rgba(255,215,0,.7);animation:tBeat 1.4s ease-in-out infinite;}
+@keyframes tBeat{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.target-hint{font-size:.76rem;color:rgba(255,255,255,.32);font-weight:700;margin-top:2px;}
+.next-box{position:fixed;bottom:115px;right:20px;pointer-events:none;text-align:center;}
+.next-lbl{font-size:.62rem;font-weight:800;color:rgba(255,255,255,.32);letter-spacing:1px;
+  text-transform:uppercase;margin-bottom:4px;}
+#nextCanvas{border:2px solid rgba(255,255,255,.12);border-radius:14px;}
+.mode-bar{position:fixed;bottom:26px;left:14px;display:flex;gap:5px;pointer-events:all;}
+.mode-pill{padding:6px 12px;border-radius:50px;font-family:'Fredoka One',cursive;
+  font-size:.7rem;border:2px solid;cursor:pointer;transition:all .3s;}
+.mode-pill.easy{border-color:rgba(0,230,118,.32);color:rgba(0,230,118,.5);}
+.mode-pill.easy.active{background:rgba(0,230,118,.13);color:#00e676;border-color:#00e676;}
+.mode-pill.medium{border-color:rgba(255,215,0,.32);color:rgba(255,215,0,.5);}
+.mode-pill.medium.active{background:rgba(255,215,0,.13);color:#ffd700;border-color:#ffd700;}
+.mode-pill.hard{border-color:rgba(255,107,53,.32);color:rgba(255,107,53,.5);}
+.mode-pill.hard.active{background:rgba(255,107,53,.13);color:#ff6b35;border-color:#ff6b35;}
+.mode-pill.adaptive{border-color:rgba(168,85,247,.32);color:rgba(168,85,247,.5);}
+.mode-pill.adaptive.active{background:rgba(168,85,247,.13);color:#a855f7;border-color:#a855f7;}
+.pop-msg{position:fixed;top:42%;left:50%;
+  transform:translate(-50%,-50%) scale(0);
+  font-family:'Fredoka One',cursive;font-size:2.6rem;
+  pointer-events:none;z-index:300;text-shadow:0 0 30px currentColor;}
+.pop-msg.show{animation:popAnim 1s cubic-bezier(.16,1,.3,1) forwards;}
+@keyframes popAnim{
+  0%{transform:translate(-50%,-50%) scale(0);opacity:1}
+  40%{transform:translate(-50%,-56%) scale(1.4);opacity:1}
+  100%{transform:translate(-50%,-72%) scale(.8);opacity:0}}
+.result-overlay{position:fixed;inset:0;z-index:500;
+  background:rgba(13,15,43,.92);backdrop-filter:blur(16px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .4s;}
+.result-overlay.show{opacity:1;pointer-events:all;}
+.result-card{background:#13163a;border:2px solid rgba(255,215,0,.3);border-radius:28px;
+  padding:44px 38px;text-align:center;max-width:420px;width:92%;
+  box-shadow:0 0 80px rgba(255,215,0,.14);transform:scale(.85);
+  transition:transform .4s cubic-bezier(.16,1,.3,1);}
+.result-overlay.show .result-card{transform:scale(1);}
+.result-emoji{font-size:4rem;display:block;margin-bottom:10px;}
+.result-title{font-family:'Fredoka One',cursive;font-size:2rem;margin-bottom:6px;}
+.result-sub{color:rgba(255,255,255,.46);font-size:.88rem;font-weight:700;margin-bottom:18px;}
+.result-stars{font-size:2.4rem;margin-bottom:18px;letter-spacing:5px;}
+.result-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px;}
+.r-stat{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  border-radius:16px;padding:12px;}
+.r-val{font-family:'Fredoka One',cursive;font-size:1.45rem;color:#ffd700;}
+.r-lbl{font-size:.65rem;color:rgba(255,255,255,.38);margin-top:2px;
+  text-transform:uppercase;font-weight:700;}
+.result-btns{display:flex;gap:10px;}
+.result-btn{flex:1;padding:13px;border-radius:50px;font-family:'Fredoka One',cursive;
+  font-size:.98rem;cursor:pointer;border:none;transition:all .3s;}
+.result-btn.primary{background:linear-gradient(135deg,#ff6b35,#ffd700);color:#0d0f2b;}
+.result-btn.secondary{background:transparent;border:2px solid rgba(255,255,255,.18);
+  color:rgba(255,255,255,.45);}
+.result-btn:hover{transform:translateY(-2px);}
+@keyframes scorePop{0%{opacity:1;transform:translateX(-50%) translateY(0)}
+  100%{opacity:0;transform:translateX(-50%) translateY(-70px)}}
+</style>
+</head>
+<body>
+<div id="adaptHUDContainer"></div>
+<div class="hud">
+  <a href="/student/hub" class="hud-back">🏠 Home</a>
+  <div class="hud-pills">
+    <div class="pill"><span class="pill-icon">⭐</span>
+      <div><div class="pill-val" id="hudScore">0</div><div class="pill-lbl">Score</div></div></div>
+    <div class="pill"><span class="pill-icon">🔥</span>
+      <div><div class="pill-val" id="hudCombo">x1</div><div class="pill-lbl">Combo</div></div></div>
+    <div class="pill"><span class="pill-icon">🎯</span>
+      <div><div class="pill-val" id="hudAcc">—</div><div class="pill-lbl">Right</div></div></div>
+    <div class="pill"><span class="pill-icon">💙</span>
+      <div><div class="pill-val" id="hudShots">25</div><div class="pill-lbl">Shots</div></div></div>
+    <div class="pill"><span class="pill-icon">⏱️</span>
+      <div><div class="pill-val" id="hudTime">120</div><div class="pill-lbl">Time</div></div></div>
+  </div>
+  <div style="width:70px"></div>
+</div>
+<canvas id="gameCanvas"></canvas>
+<div class="target-box">
+  <div class="target-lbl">Make this number! 🎯</div>
+  <div class="target-num" id="targetNum">?</div>
+  <div class="target-hint" id="targetHint"></div>
+</div>
+<div class="next-box">
+  <div class="next-lbl">Next</div>
+  <canvas id="nextCanvas" width="70" height="70"></canvas>
+</div>
+<div class="mode-bar">
+  <div class="mode-pill easy active" onclick="setMode('easy')">😊 Easy</div>
+  <div class="mode-pill medium"      onclick="setMode('medium')">🌟 Medium</div>
+  <div class="mode-pill hard"        onclick="setMode('hard')">🔥 Hard</div>
+  <div class="mode-pill adaptive"    onclick="setMode('adaptive')">🤖 AI</div>
+</div>
+<div class="pop-msg" id="popMsg"></div>
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-card">
+    <span class="result-emoji" id="rEmoji">🎉</span>
+    <div class="result-title" id="rTitle">Amazing!</div>
+    <div class="result-sub"   id="rSub">You did great!</div>
+    <div class="result-stars" id="rStars">⭐⭐⭐</div>
+    <div class="result-stats">
+      <div class="r-stat"><div class="r-val" id="rScore">0</div><div class="r-lbl">Score</div></div>
+      <div class="r-stat"><div class="r-val" id="rAcc">0%</div><div class="r-lbl">Correct</div></div>
+      <div class="r-stat"><div class="r-val" id="rCombo">x1</div><div class="r-lbl">Best Combo</div></div>
+      <div class="r-stat"><div class="r-val" id="rTime">0s</div><div class="r-lbl">Time</div></div>
+    </div>
+    <div class="result-btns">
+      <button class="result-btn primary" id="nextBtn" onclick="nextLevel()">Next Level! 🚀</button>
+      <button class="result-btn secondary"
+        onclick="window.location.href='/student/hub'">🏠 Home</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════
+// FUNMIYO SKILLQUEST — Bubble Math
+// ALL state variables declared first to avoid reference
+// errors when AdaptiveEngine is instantiated below
+// ═══════════════════════════════════════════════════════
+
+// ── Canvas setup ──────────────────────────────────────
+const canvas   = document.getElementById('gameCanvas');
+const ctx      = canvas.getContext('2d');
+const nCanvas  = document.getElementById('nextCanvas');
+const nCtx     = nCanvas.getContext('2d');
+const W        = canvas.width  = Math.min(window.innerWidth, 540);
+const H        = canvas.height = window.innerHeight;
+const R        = 24;
+const COLS     = Math.floor((W - 20) / (R * 2));
+const ROWS     = 10;
+const GX       = (W - COLS * R * 2) / 2 + R;
+const GY       = 80;
+
+// ── ALL state declared before AdaptiveEngine ──────────
+let gradeConfig    = { ops:['+'], max_num:20, time:120 };
+let currentMode    = 'easy';
+let cfg            = { operators:['+'], speed:4, timeLimit:120, shots:25,
+                       targetMax:20, targetMin:6, numMax:10, hintLevel:3, scoreMultiplier:1 };
+let sessionId      = null;
+let sessionStart   = Date.now();
+let lastActionTime = Date.now();
+let score          = 0;
+let level          = 1;
+let combo          = 1;
+let maxCombo       = 1;
+let totalShots     = 0;
+let correctShots   = 0;
+let shotsLeft      = 25;
+let timeLeft       = 120;
+let gameActive     = false;
+let timerInterval  = null;
+let targetValue    = 0;
+let grid           = [];
+let fired          = null;
+let shooterBubble  = null;
+let nextBubble     = null;
+let cannonX        = W / 2;
+let cannonY        = H - 100;
+let cannonAngle    = -Math.PI / 2;
+let particles      = [];
+let popAnims       = [];
+let frameCount     = 0;
+let operatorCounts = {};
+
+// ── Adaptive engine (declared after all state vars) ───
+const ai = new AdaptiveEngine('bubble');
+ai.onLevelChange = (s, reason, fb) => {
+  applySettings(s);
+  updateAdaptiveHUD(s);
+  if (fb) showAdaptFeedback(fb);
+};
+
+// ── Colours ───────────────────────────────────────────
+const BCOLORS = ['#ff6b35','#ffd700','#4ecdc4','#ff4db8','#a855f7',
+                 '#00e676','#44a8ff','#ff6b6b'];
+function bColor(v) { return BCOLORS[(v - 1) % BCOLORS.length] || '#ffd700'; }
+
+// ── Settings helpers ───────────────────────────────────
+function buildCfg(s) {
+  return {
+    operators:      s.operators      || ['+'],
+    speed:          (s.speedMultiplier || 0.6) * 5,
+    timeLimit:      s.timeLimit      || 120,
+    shots:          s.shots          || 25,
+    targetMax:      Math.max(s.targetMax || 8, 6),
+    targetMin:      Math.max(s.targetMin || 6, 6),
+    numMax:         Math.max(s.numMax || 5, 3),
+    hintLevel:      s.hintLevel !== undefined ? s.hintLevel : 3,
+    scoreMultiplier: s.scoreMultiplier || 1,
+  };
+}
+
+function applySettings(s) {
+  cfg = buildCfg(s);
+}
+
+function setMode(m) {
+  currentMode = m;
+  ai.mode     = m;
+  document.querySelectorAll('.mode-pill').forEach(el =>
+    el.classList.toggle('active', el.classList.contains(m)));
+  const s = m === 'adaptive' ? ai.getCurrentSettings() : ai.getFixedSettings(m);
+  applySettings(s);
+  updateAdaptiveHUD(s);
+  shotsLeft = cfg.shots;
+  timeLeft  = cfg.timeLimit;
+  document.getElementById('hudShots').textContent = shotsLeft;
+  document.getElementById('hudTime').textContent  = timeLeft;
+  buildGrid();
+  generateTarget();
+}
+
+// ── Init ──────────────────────────────────────────────
+async function init() {
+  createAdaptiveHUD('adaptHUDContainer');
+
+  try {
+    const r = await fetch('/api/grade/config');
+    gradeConfig = await r.json();
+  } catch(e) {}
+
+  await ai.loadProfile();
+
+  const s = ai.getFixedSettings(currentMode);
+  applySettings(s);
+
+  try {
+    const r = await fetch('/api/session/start', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ game_type:'bubble', difficulty:currentMode, level })
+    });
+    const d = await r.json();
+    sessionId = d.session_id;
+  } catch(e) {}
+
+  buildGrid();
+  generateTarget();
+  shooterBubble = makeRandom();
+  nextBubble    = makeRandom();
+  drawNext();
+  gameActive    = true;
+  startTimer();
+  sessionStart  = Date.now();
+  requestAnimationFrame(gameLoop);
+}
+
+// ── Grid ──────────────────────────────────────────────
+function buildGrid() {
+  grid = [];
+  const numRows = Math.min(3 + level, 7);
+  const nums    = getNumbers();
+  for (let r = 0; r < ROWS; r++) {
+    grid[r] = [];
+    for (let c = 0; c < COLS; c++) {
+      grid[r][c] = r < numRows
+        ? { value: nums[Math.floor(Math.random() * nums.length)], row:r, col:c, scale:1 }
+        : null;
+    }
+  }
+}
+
+function makeRandom() {
+  const n = getNumbers();
+  return { value: n[Math.floor(Math.random() * n.length)] };
+}
+
+function getNumbers() {
+  const mx = Math.max(cfg.numMax || gradeConfig.max_num || 5, 3);
+  const a  = [];
+  for (let i = 1; i <= mx; i++) a.push(i);
+  return a;
+}
+
+function generateTarget() {
+  const mn = Math.max(cfg.targetMin || 6, 6);
+  const mx = Math.max(cfg.targetMax || gradeConfig.max_num || 8, mn + 3);
+  targetValue = Math.floor(Math.random() * (mx - mn + 1)) + mn;
+  document.getElementById('targetNum').textContent = targetValue;
+  document.getElementById('targetHint').textContent =
+    cfg.hintLevel >= 2
+      ? `Find numbers that add to ${targetValue} 😊`
+      : '';
+}
+
+// ── Timer ─────────────────────────────────────────────
+function startTimer() {
+  clearInterval(timerInterval);
+  timeLeft = cfg.timeLimit || 120;
+  timerInterval = setInterval(() => {
+    if (!gameActive) return;
+    timeLeft--;
+    const el = document.getElementById('hudTime');
+    el.textContent = timeLeft;
+    el.style.color = timeLeft <= 15 ? '#ff6b35' : '#fff';
+    if (timeLeft <= 0) endGame('timeout');
+  }, 1000);
+}
+
+// ── Grid coordinates ───────────────────────────────────
+function gXY(r, c) {
+  const off = (r % 2 === 1) ? R : 0;
+  return { x: GX + c * R * 2 + off, y: GY + r * (R * 1.78) };
+}
+function toGrid(x, y) {
+  const r   = Math.round((y - GY) / (R * 1.78));
+  const off = (r % 2 === 1) ? R : 0;
+  const c   = Math.round((x - GX - off) / (R * 2));
+  return { row: Math.max(0, Math.min(r, ROWS-1)),
+           col: Math.max(0, Math.min(c, COLS-1)) };
+}
+function nbs(r, c) {
+  const odd = r % 2 === 1;
+  return [
+    {row:r-1,col:c+(odd?0:-1)}, {row:r-1,col:c+(odd?1:0)},
+    {row:r+1,col:c+(odd?0:-1)}, {row:r+1,col:c+(odd?1:0)},
+    {row:r,col:c-1},             {row:r,col:c+1}
+  ].filter(n => n.row >= 0 && n.row < ROWS && n.col >= 0 && n.col < COLS);
+}
+
+// ── Input ─────────────────────────────────────────────
+canvas.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect();
+  cannonAngle = Math.atan2(e.clientY - rect.top - cannonY,
+                           e.clientX - rect.left - cannonX);
+  if (cannonAngle >  -0.18) cannonAngle =  -0.18;
+  if (cannonAngle < -Math.PI + 0.18) cannonAngle = -Math.PI + 0.18;
+});
+canvas.addEventListener('click', () => { if (gameActive && !fired) fire(); });
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  if (!gameActive || fired) return;
+  const t    = e.changedTouches[0];
+  const rect = canvas.getBoundingClientRect();
+  cannonAngle = Math.atan2(t.clientY - rect.top - cannonY,
+                           t.clientX - rect.left - cannonX);
+  if (cannonAngle >  -0.18) cannonAngle =  -0.18;
+  if (cannonAngle < -Math.PI + 0.18) cannonAngle = -Math.PI + 0.18;
+  fire();
+}, { passive:false });
+
+function fire() {
+  if (!shooterBubble || shotsLeft <= 0) return;
+  fired = {
+    value: shooterBubble.value,
+    x: cannonX, y: cannonY,
+    vx: Math.cos(cannonAngle) * (cfg.speed || 4),
+    vy: Math.sin(cannonAngle) * (cfg.speed || 4),
+    age: 0,
+  };
+  totalShots++;
+  shotsLeft--;
+  document.getElementById('hudShots').textContent = shotsLeft;
+  lastActionTime  = Date.now();
+  shooterBubble   = nextBubble;
+  nextBubble      = makeRandom();
+  drawNext();
+}
+
+// ── Physics ───────────────────────────────────────────
+function updateFired() {
+  if (!fired) return;
+  fired.age = (fired.age || 0) + 1;
+  fired.x += fired.vx;
+  fired.y += fired.vy;
+
+  if (fired.x - R < 0)  { fired.x = R;   fired.vx *= -1; }
+  if (fired.x + R > W)  { fired.x = W-R; fired.vx *= -1; }
+
+  if (fired.y - R <= GY) {
+    landBubble(fired);
+    return;
+  }
+
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const b = grid[r][c];
+      if (!b) continue;
+      const { x, y } = gXY(r, c);
+      if (Math.hypot(fired.x - x, fired.y - y) < R * 1.88) {
+        landBubble(fired);
+        return;
+      }
+    }
+  }
+
+  if (fired.y > H + R) {
+    fired = null;
+    checkShots();
+  }
+
+  if (fired && fired.age > 480) {
+    fired = null;
+    checkShots();
+  }
+}
+
+// ── Land bubble — FIX: does NOT call checkShots itself ─
+function landBubble(b) {
+  const pos = toGrid(b.x, b.y);
+  const cands = [
+    pos,
+    { row:pos.row, col:pos.col-1 }, { row:pos.row, col:pos.col+1 },
+    { row:pos.row-1, col:pos.col }, { row:pos.row+1, col:pos.col },
+    { row:pos.row-1, col:pos.col+(pos.row%2===1?1:-1) },
+  ];
+  for (const p of cands) {
+    if (p.row >= 0 && p.row < ROWS && p.col >= 0 && p.col < COLS
+        && !grid[p.row][p.col]) {
+      grid[p.row][p.col] = { value:b.value, row:p.row, col:p.col, scale:1 };
+      fired = null;
+      // checkMatches is solely responsible for calling checkShots
+      checkMatches(p.row, p.col, b.value);
+      return;
+    }
+  }
+  // No free cell found — just drop the bubble.
+  fired = null;
+  checkShots();
+}
+
+// ── Match logic ───────────────────────────────────────
+function checkMatches(sr, sc, sv) {
+  const conn    = getLocalCandidates(sr, sc);
+  const shotKey = `${sr},${sc}`;
+  let best      = null;
+
+  if (conn.length >= 2) {
+    const subs = getSubs(conn, 4);
+    for (const sub of subs) {
+      if (!sub.some(b => `${b.row},${b.col}` === shotKey)) continue;
+      if (tryOps(sub, targetValue) !== null) { best = sub; break; }
+    }
+  }
+
+  const rt = (Date.now() - lastActionTime) / 1000;
+
+  if (best) {
+    ai.record(true, rt);
+    popBubbles(best, rt, (cfg.operators || ['+'])[0]);
+    // popBubbles calls removeFloat + checkLevelClear — do NOT call checkShots here
+  } else {
+    combo = 1;
+    document.getElementById('hudCombo').textContent = 'x1';
+    ai.record(false, rt);
+    logAction({ action_type:'miss', success:false,
+      target_value:targetValue, result_value:sv, reaction_time:rt });
+    checkShots(); // Only call checkShots on a miss
+  }
+}
+
+function getLocalCandidates(row, col) {
+  const keys = new Set([`${row},${col}`]);
+  for (const n of nbs(row, col)) {
+    keys.add(`${n.row},${n.col}`);
+    for (const n2 of nbs(n.row, n.col)) keys.add(`${n2.row},${n2.col}`);
+  }
+  const res = [];
+  for (const key of keys) {
+    const [r, c] = key.split(',').map(Number);
+    if (r < 0 || r >= ROWS || c < 0 || c >= COLS || !grid[r][c]) continue;
+    grid[r][c].row = r;
+    grid[r][c].col = c;
+    res.push(grid[r][c]);
+  }
+  return res;
+}
+
+function getConn(row, col) {
+  const vis = new Set(), res = [], q = [{row, col}];
+  while (q.length) {
+    const { row:r, col:c } = q.shift();
+    const k = `${r},${c}`;
+    if (vis.has(k) || r<0 || r>=ROWS || c<0 || c>=COLS || !grid[r][c]) continue;
+    vis.add(k);
+    grid[r][c].row = r;
+    grid[r][c].col = c;
+    res.push(grid[r][c]);
+    for (const n of nbs(r, c)) q.push(n);
+  }
+  return res;
+}
+
+function getSubs(arr, mx) {
+  const res = [], n = arr.length;
+  for (let sz = 2; sz <= Math.min(n, mx); sz++) {
+    const idx = []; for (let i=0;i<sz;i++) idx.push(i);
+    while (true) {
+      res.push(idx.map(i => arr[i]));
+      let i = sz - 1;
+      while (i >= 0 && idx[i] === n - sz + i) i--;
+      if (i < 0) break;
+      idx[i]++;
+      for (let j = i+1; j < sz; j++) idx[j] = idx[j-1]+1;
+    }
+  }
+  return res;
+}
+
+function tryOps(bubbles, target) {
+  const vals = bubbles.map(b => b.value);
+  const ops  = cfg.operators || ['+'];
+  for (const perm of pmt(vals)) {
+    for (const op of ops) {
+      if (bubbles.length === 2 && ev(perm[0], perm[1], op) === target) return op;
+      if (bubbles.length === 3) {
+        for (const op2 of ops) {
+          const mid = ev(perm[0], perm[1], op);
+          if (mid !== null && ev(mid, perm[2], op2) === target) return op;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function ev(a, b, op) {
+  switch(op) {
+    case '+': return a + b;
+    case '-': return a - b;
+    case '×': return a * b;
+    case '÷': return b !== 0 ? a / b : null;
+  }
+  return null;
+}
+
+function pmt(a) {
+  if (a.length <= 1) return [a];
+  const r = [];
+  for (let i = 0; i < a.length; i++) {
+    const rest = [...a.slice(0,i), ...a.slice(i+1)];
+    for (const p of pmt(rest)) r.push([a[i], ...p]);
+  }
+  return r;
+}
+
+// ── Pop bubbles ───────────────────────────────────────
+function popBubbles(bubbles, rt, op) {
+  correctShots++;
+  combo++;
+  if (combo > maxCombo) maxCombo = combo;
+  const pts = Math.round(bubbles.length * 80 * combo * (cfg.scoreMultiplier || 1));
+  score += pts;
+  operatorCounts[op] = (operatorCounts[op] || 0) + 1;
+
+  for (const b of bubbles) {
+    const { x, y } = gXY(b.row, b.col);
+    grid[b.row][b.col] = null;
+    spawnParts(x, y, bColor(b.value), 10);
+    popAnims.push({ x, y, value:b.value, t:0, max:28 });
+  }
+
+  showScorePop(pts, bubbles[0]?.row, bubbles[0]?.col);
+  if (combo >= 3) showCombo(combo);
+  updateHUD();
+  logAction({
+    action_type:'pop', success:true, operator_used:op,
+    target_value:targetValue, result_value:targetValue,
+    reaction_time:rt, combo_count:combo, score_delta:pts
+  });
+
+  generateTarget();
+  setTimeout(removeFloat, 200);
+  // Check level clear after animations settle
+  setTimeout(checkLevelClear, 350);
+  // Check shots after a short delay (in case no more bubbles)
+  setTimeout(checkShots, 400);
+}
+
+function removeFloat() {
+  const vis = new Set();
+  for (let c = 0; c < COLS; c++) if (grid[0][c]) flood(0, c, vis);
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    if (grid[r][c] && !vis.has(`${r},${c}`)) {
+      const { x, y } = gXY(r, c);
+      spawnParts(x, y, '#aaaaaa', 4);
+      grid[r][c] = null;
+      score += 20;
+    }
+  }
+}
+
+function flood(r, c, vis) {
+  const k = `${r},${c}`;
+  if (vis.has(k) || r<0 || r>=ROWS || c<0 || c>=COLS || !grid[r][c]) return;
+  vis.add(k);
+  for (const n of nbs(r, c)) flood(n.row, n.col, vis);
+}
+
+function checkLevelClear() {
+  if (!gameActive) return;
+  let has = false;
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++)
+    if (grid[r][c]) { has = true; break; }
+  if (!has) showResult('clear');
+}
+
+function checkShots() {
+  if (!gameActive) return;
+  if (shotsLeft <= 0 && !fired) setTimeout(() => endGame('shots'), 500);
+}
+
+function updateHUD() {
+  document.getElementById('hudScore').textContent = score.toLocaleString();
+  document.getElementById('hudCombo').textContent = 'x' + combo;
+  const a = totalShots > 0
+    ? Math.round(correctShots / totalShots * 100) + '%'
+    : '—';
+  document.getElementById('hudAcc').textContent = a;
+}
+
+// ── Particles ─────────────────────────────────────────
+function spawnParts(x, y, color, n) {
+  for (let i = 0; i < n; i++) {
+    const a = (Math.PI * 2 / n) * i + Math.random() * 0.5;
+    const spd = 2 + Math.random() * 5;
+    particles.push({ x, y, vx:Math.cos(a)*spd, vy:Math.sin(a)*spd,
+                     color, life:1, size:3+Math.random()*4 });
+  }
+}
+function updateParts() {
+  particles = particles.filter(p => p.life > 0);
+  for (const p of particles) {
+    p.x += p.vx; p.y += p.vy; p.vy += 0.13; p.vx *= 0.96; p.life -= 0.03;
+  }
+}
+
+// ── UI helpers ────────────────────────────────────────
+function showScorePop(pts, row, col) {
+  const div  = document.createElement('div');
+  const pos  = row != null ? gXY(row, col) : { x:W/2, y:H/2 };
+  const rect = canvas.getBoundingClientRect();
+  div.style.cssText =
+    `position:fixed;left:${rect.left+pos.x}px;top:${rect.top+pos.y}px;` +
+    `font-family:'Fredoka One',cursive;font-size:1.4rem;color:#ffd700;` +
+    `text-shadow:0 0 14px rgba(255,215,0,.9);pointer-events:none;z-index:400;` +
+    `animation:scorePop 1s ease-out forwards;transform:translateX(-50%);`;
+  div.textContent = '+' + pts;
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 1000);
+}
+function showCombo(n) {
+  const el = document.getElementById('popMsg');
+  el.textContent = n >= 5 ? '🔥 SUPER!' : n >= 3 ? '⚡ COMBO x'+n+'!' : '👍 NICE!';
+  el.style.color = n >= 5 ? '#ff6b35' : n >= 3 ? '#ffd700' : '#00e676';
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+}
+
+// ── Draw next ─────────────────────────────────────────
+function drawNext() {
+  nCtx.clearRect(0,0,70,70);
+  if (!nextBubble) return;
+  const col = bColor(nextBubble.value);
+  nCtx.shadowColor = col; nCtx.shadowBlur = 14;
+  const g = nCtx.createRadialGradient(29,25,2,35,35,17);
+  g.addColorStop(0,'rgba(255,255,255,.65)');
+  g.addColorStop(.45,col);
+  g.addColorStop(1,'rgba(0,0,0,.3)');
+  nCtx.beginPath(); nCtx.arc(35,35,17,0,Math.PI*2);
+  nCtx.fillStyle = g; nCtx.fill();
+  nCtx.shadowBlur = 0;
+  nCtx.fillStyle = '#fff';
+  nCtx.font = `bold ${nextBubble.value>9?10:12}px 'Fredoka One',cursive`;
+  nCtx.textAlign = 'center'; nCtx.textBaseline = 'middle';
+  nCtx.fillText(nextBubble.value, 35, 35);
+}
+
+// ── Draw bubble ───────────────────────────────────────
+function drawBubble(c, x, y, val, scale=1, alpha=1, glow=false) {
+  scale = Math.max(0.01, Math.abs(Number(scale) || 1));
+  alpha = Math.max(0, Math.min(1, Number(alpha) || 0));
+  const col = bColor(val);
+  c.save(); c.globalAlpha = alpha; c.translate(x,y); c.scale(scale,scale);
+  if (glow) { c.shadowColor = col; c.shadowBlur = 20; }
+  const g = c.createRadialGradient(-R*.3,-R*.3,R*.05,0,0,R);
+  g.addColorStop(0,'rgba(255,255,255,.55)');
+  g.addColorStop(.45,col);
+  g.addColorStop(1,'rgba(0,0,0,.35)');
+  c.beginPath(); c.arc(0,0,R,0,Math.PI*2); c.fillStyle = g; c.fill();
+  c.beginPath(); c.arc(-R*.25,-R*.3,R*.28,0,Math.PI*2);
+  c.fillStyle = 'rgba(255,255,255,.22)'; c.fill();
+  c.shadowBlur = 0;
+  c.fillStyle = '#fff';
+  c.font = `bold ${val>9?13:15}px 'Fredoka One',cursive`;
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText(val, 0, 0); c.restore();
+}
+
+// ── Draw cannon ───────────────────────────────────────
+function drawCannon() {
+  ctx.save(); ctx.translate(cannonX, cannonY); ctx.rotate(cannonAngle + Math.PI/2);
+  ctx.shadowColor = '#4ecdc4'; ctx.shadowBlur = 18;
+  const bg = ctx.createLinearGradient(-9,0,9,0);
+  bg.addColorStop(0,'#0d3a4a'); bg.addColorStop(.5,'#4ecdc4'); bg.addColorStop(1,'#0d3a4a');
+  ctx.fillStyle = bg; ctx.fillRect(-9,-44,18,44);
+  ctx.beginPath(); ctx.arc(0,0,22,0,Math.PI*2);
+  const b2 = ctx.createRadialGradient(0,0,5,0,0,22);
+  b2.addColorStop(0,'#1a4d5c'); b2.addColorStop(1,'#0d2535');
+  ctx.fillStyle = b2; ctx.fill();
+  ctx.strokeStyle = '#4ecdc4'; ctx.lineWidth = 2.5; ctx.stroke();
+  ctx.restore();
+}
+
+// ── Draw trajectory ───────────────────────────────────
+function drawTraj() {
+  ctx.save(); ctx.setLineDash([7,9]);
+  ctx.strokeStyle = 'rgba(78,205,196,.18)'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  let x=cannonX, y=cannonY, vx=Math.cos(cannonAngle)*7, vy=Math.sin(cannonAngle)*7, b=0;
+  ctx.moveTo(x,y);
+  for (let i=0;i<70;i++) {
+    x+=vx; y+=vy;
+    if(x-R<0){x=R;vx*=-1;b++;}
+    if(x+R>W){x=W-R;vx*=-1;b++;}
+    if(b>=2||y<0)break;
+    ctx.lineTo(x,y);
+  }
+  ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+}
+
+// ── Background ────────────────────────────────────────
+function drawBg() {
+  ctx.clearRect(0,0,W,H);
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#0d0f2b');
+  bg.addColorStop(.5,'#0f1535');
+  bg.addColorStop(1,'#0d0f2b');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+  const t = Date.now() * 0.001;
+  for (let i=0;i<35;i++) {
+    const sx = (Math.sin(i*12.9)*.5+.5)*W;
+    const sy = (Math.cos(i*7.3)*.5+.5)*H*.6;
+    const sz = (Math.sin(t+i)*.5+.5)*2+.5;
+    ctx.globalAlpha = (Math.sin(t*1.5+i)*.5+.5)*.65;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(sx,sy,sz,0,Math.PI*2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ── Game loop ─────────────────────────────────────────
+function gameLoop() {
+  drawBg();
+  drawTraj();
+
+  // Grid
+  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) {
+    const b = grid[r][c];
+    if (!b) continue;
+    const { x, y } = gXY(r, c);
+    drawBubble(ctx, x, y, b.value, b.scale || 1);
+  }
+
+  // Pop animations
+  for (let i=popAnims.length-1;i>=0;i--) {
+    const a = popAnims[i], t = a.t / a.max;
+    drawBubble(ctx, a.x, a.y, a.value, 1+t*.9, 1-t);
+    a.t++;
+    if (a.t >= a.max) popAnims.splice(i,1);
+  }
+
+  // Particles
+  for (const p of particles) {
+    const pr = Math.max(0, p.size * p.life);
+    if (pr <= 0) continue;
+    ctx.save(); ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color; ctx.shadowColor = p.color; ctx.shadowBlur = 8;
+    ctx.beginPath(); ctx.arc(p.x,p.y,pr,0,Math.PI*2);
+    ctx.fill(); ctx.restore();
+  }
+
+  drawCannon();
+
+  if (!fired && shooterBubble)
+    drawBubble(ctx, cannonX, cannonY-8, shooterBubble.value, 1, 1, true);
+  if (fired) {
+    updateFired();
+    if (fired) drawBubble(ctx, fired.x, fired.y, fired.value, 1, 1, true);
+  }
+
+  updateParts();
+  frameCount++;
+  requestAnimationFrame(gameLoop);
+}
+
+// ── End / Result ──────────────────────────────────────
+function endGame(reason) {
+  if (!gameActive) return;
+  gameActive = false;
+  clearInterval(timerInterval);
+  const timeTaken = Math.round((Date.now() - sessionStart) / 1000);
+  const acc       = totalShots > 0 ? Math.round(correctShots/totalShots*100) : 0;
+  const stars     = acc>85 ? 3 : acc>65 ? 2 : acc>35 ? 1 : 0;
+  saveSession(timeTaken);
+  showResult(reason, stars, acc, timeTaken);
+}
+
+async function saveSession(timeTaken) {
+  if (!sessionId) return;
+  try {
+    await fetch('/api/session/end', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        session_id:sessionId, score, level, difficulty:currentMode,
+        time_taken:timeTaken, total_attempts:totalShots, correct_attempts:correctShots,
+        combo_max:maxCombo, operators_used:operatorCounts
+      })
+    });
+  } catch(e) {}
+}
+
+function showResult(reason, stars, acc, timeTaken) {
+  const emap  = { clear:'🏆', timeout:'⏰', shots:'💫' };
+  const tmap  = { clear:'Level Clear! 🎉', timeout:"Time's Up! ⏰", shots:'Game Over! 💪' };
+  const smap  = { clear:'You popped all the bubbles!',
+                  timeout:'Be a bit faster next time!',
+                  shots:'Great try! Keep practising!' };
+  document.getElementById('rEmoji').textContent    = emap[reason]  || '🎮';
+  document.getElementById('rTitle').textContent    = tmap[reason]  || 'Done!';
+  document.getElementById('rTitle').style.color    = reason==='clear'?'#00e676':reason==='timeout'?'#ff6b35':'#ffd700';
+  document.getElementById('rSub').textContent      = smap[reason]  || '';
+  document.getElementById('rStars').textContent    = ['','⭐','⭐⭐','⭐⭐⭐'][stars] || '⭐';
+  document.getElementById('rScore').textContent    = score.toLocaleString();
+  document.getElementById('rAcc').textContent      = acc + '%';
+  document.getElementById('rCombo').textContent    = 'x' + maxCombo;
+  document.getElementById('rTime').textContent     = (timeTaken||0) + 's';
+  document.getElementById('nextBtn').style.display = reason==='clear' ? '' : 'none';
+  document.getElementById('resultOverlay').classList.add('show');
+}
+
+function nextLevel() {
+  document.getElementById('resultOverlay').classList.remove('show');
+  level++; score += 300*level;
+  shotsLeft=cfg.shots; combo=1; maxCombo=1; totalShots=0; correctShots=0;
+  buildGrid(); generateTarget(); gameActive=true; startTimer();
+}
+
+async function logAction(d) {
+  if (!sessionId) return;
+  try {
+    await fetch('/api/log/action', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ session_id:sessionId, level, difficulty:currentMode, ...d })
+    });
+  } catch(e) {}
+}
+
+// Inject keyframe
+const sty = document.createElement('style');
+sty.textContent =
+  `@keyframes scorePop{0%{opacity:1;transform:translateX(-50%) translateY(0)}` +
+  `100%{opacity:0;transform:translateX(-50%) translateY(-70px)}}`;
+document.head.appendChild(sty);
+
+window.addEventListener('load', init);
+</script>
+</body>
+</html>

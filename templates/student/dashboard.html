@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Funmiyo SkillQuest - My Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/global.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+body{background:#0d0f2b;color:#fff;font-family:'Nunito',sans-serif;}
+.nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:64px;background:rgba(2,8,24,.97);border-bottom:1px solid rgba(0,200,255,.15);backdrop-filter:blur(20px);}
+.nav-logo{font-family:'Fredoka One',cursive;font-size:1.15rem;font-weight:900;background:linear-gradient(135deg,#ff6b35,#ffd700,#4ecdc4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none;}
+.nav-links{display:flex;gap:8px;align-items:center;}
+.nav-link{padding:7px 15px;border:1px solid transparent;border-radius:8px;color:#6080a0;text-decoration:none;font-size:.78rem;letter-spacing:1px;transition:all .3s;}
+.nav-link:hover{border-color:rgba(0,200,255,.3);color:#00c8ff;}
+.nav-link.active{border-color:rgba(0,200,255,.4);color:#00c8ff;background:rgba(0,200,255,.06);}
+.nav-user{font-size:.8rem;color:#6080a0;}
+.nav-user span{color:#00c8ff;font-weight:600;}
+.page{max-width:1300px;margin:0 auto;padding:28px 32px 60px;position:relative;z-index:10;}
+.grid-overlay{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(0,200,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,255,.025) 1px,transparent 1px);background-size:60px 60px;}
+
+/* Hero */
+.hero{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;padding:24px 28px;background:linear-gradient(135deg,rgba(0,200,255,.06),rgba(124,58,237,.06));border:1px solid rgba(0,200,255,.15);border-radius:20px;}
+.hero-left h1{font-family:'Fredoka One',cursive;font-size:1.5rem;font-weight:900;background:linear-gradient(135deg,#ff6b35,#ffd700,#4ecdc4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-left p{color:#6080a0;font-size:.88rem;margin-top:5px;}
+.hero-btns{display:flex;gap:10px;}
+.hero-btn{padding:11px 22px;border-radius:11px;font-family:'Orbitron',sans-serif;font-size:.7rem;letter-spacing:2px;cursor:pointer;border:none;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all .3s;}
+.hero-btn.primary{background:linear-gradient(135deg,#00c8ff,#7c3aed);color:#fff;}
+.hero-btn.secondary{background:transparent;border:1px solid rgba(0,200,255,.3);color:#00c8ff;}
+.hero-btn:hover{transform:translateY(-2px);}
+
+/* AI Banner */
+.ai-card{display:flex;align-items:center;gap:22px;padding:20px 26px;margin-bottom:24px;background:linear-gradient(135deg,rgba(0,200,255,.05),rgba(124,58,237,.05));border:1px solid rgba(0,200,255,.18);border-radius:18px;backdrop-filter:blur(20px);}
+.ai-icon{font-size:2.5rem;}
+.ai-body{flex:1;}
+.ai-sub{font-size:.62rem;color:#6080a0;letter-spacing:2px;text-transform:uppercase;}
+.ai-name{font-family:'Orbitron',sans-serif;font-size:1.3rem;font-weight:700;color:#00c8ff;margin:3px 0;}
+.ai-desc{font-size:.82rem;color:#a0c0e0;}
+.ai-meters{display:flex;gap:16px;}
+.ai-meter{text-align:center;}
+.ai-meter-val{font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:700;color:#7c3aed;}
+.ai-meter-lbl{font-size:.6rem;color:#6080a0;text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.ai-rec{padding:8px 16px;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.3);border-radius:9px;font-size:.76rem;color:#a78bfa;}
+
+/* Stats grid */
+.stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px;}
+.stat-card{background:rgba(10,20,60,.65);border:1px solid rgba(0,200,255,.12);border-radius:16px;padding:18px 20px;backdrop-filter:blur(20px);transition:all .3s;}
+.stat-card:hover{border-color:rgba(0,200,255,.3);transform:translateY(-3px);}
+.stat-icon{font-size:1.5rem;margin-bottom:8px;display:block;}
+.stat-val{font-family:'Orbitron',sans-serif;font-size:1.55rem;font-weight:700;color:#fff;}
+.stat-lbl{font-size:.66rem;color:#6080a0;letter-spacing:1px;text-transform:uppercase;margin-top:5px;}
+
+/* Charts */
+.charts-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+.chart-card{background:rgba(10,20,60,.65);border:1px solid rgba(0,200,255,.12);border-radius:18px;padding:20px 22px;backdrop-filter:blur(20px);}
+.chart-title{font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:3px;color:#6080a0;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.chart-title .dot{width:7px;height:7px;border-radius:50%;background:var(--c,#00c8ff);}
+.chart-wrap{position:relative;height:200px;}
+.chart-wrap.tall{height:240px;}
+
+/* Games row */
+.games-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+.game-stat-card{background:rgba(10,20,60,.65);border:1px solid rgba(0,200,255,.1);border-radius:14px;padding:16px 18px;backdrop-filter:blur(20px);transition:all .3s;}
+.game-stat-card:hover{border-color:rgba(0,200,255,.25);transform:translateY(-2px);}
+.game-stat-icon{font-size:1.8rem;margin-bottom:8px;}
+.game-stat-name{font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:2px;color:#6080a0;text-transform:uppercase;margin-bottom:10px;}
+.game-stat-val{font-family:'Orbitron',sans-serif;font-size:1.2rem;font-weight:700;color:#00c8ff;}
+.game-stat-sub{font-size:.72rem;color:#6080a0;margin-top:3px;}
+
+/* Operator bars */
+.op-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.op-sym{font-family:'Orbitron',sans-serif;font-size:.95rem;font-weight:700;width:28px;text-align:center;flex-shrink:0;}
+.op-bg{flex:1;height:9px;background:rgba(255,255,255,.05);border-radius:5px;overflow:hidden;}
+.op-fill{height:100%;border-radius:5px;transition:width 1.2s ease;}
+.op-pct{font-size:.76rem;color:#6080a0;width:38px;text-align:right;flex-shrink:0;}
+
+/* Sessions table */
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{font-family:'Orbitron',sans-serif;font-size:.58rem;letter-spacing:2px;color:#4060a0;text-transform:uppercase;padding:9px 12px;border-bottom:1px solid rgba(0,200,255,.08);text-align:left;}
+.tbl td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.03);font-size:.84rem;}
+.tbl tr:hover td{background:rgba(0,200,255,.03);}
+.tag{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:5px;font-size:.68rem;}
+.tag.bubble{background:rgba(0,200,255,.1);color:#00c8ff;border:1px solid rgba(0,200,255,.2);}
+.tag.blaster{background:rgba(255,102,0,.1);color:#ff6600;border:1px solid rgba(255,102,0,.2);}
+.tag.merge{background:rgba(0,255,136,.1);color:#00ff88;border:1px solid rgba(0,255,136,.2);}
+.tag.boss{background:rgba(255,0,80,.1);color:#ff0050;border:1px solid rgba(255,0,80,.2);}
+
+/* Announcements */
+.announce-list{display:flex;flex-direction:column;gap:10px;}
+.announce-item{padding:14px 18px;background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.18);border-radius:12px;}
+.announce-title{font-weight:600;color:#c4b5fd;margin-bottom:4px;}
+.announce-body{font-size:.82rem;color:#8090b0;line-height:1.5;}
+.announce-date{font-size:.68rem;color:#4060a0;margin-top:6px;}
+
+/* Imp list */
+.imp-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,64,96,.05);border:1px solid rgba(255,64,96,.12);border-radius:10px;margin-bottom:8px;}
+.imp-text{font-size:.82rem;color:#c0d0e0;}
+
+.sec-hdr{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+.sec-ttl{font-family:'Orbitron',sans-serif;font-size:.68rem;letter-spacing:4px;color:#6080a0;text-transform:uppercase;}
+.sec-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(0,200,255,.18),transparent);}
+
+.spin{display:flex;align-items:center;justify-content:center;padding:50px;font-family:'Orbitron',sans-serif;font-size:.75rem;letter-spacing:3px;color:#4060a0;}
+.spinner{width:28px;height:28px;border:2px solid rgba(0,200,255,.1);border-top-color:#00c8ff;border-radius:50%;animation:spin .8s linear infinite;margin-right:12px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:1024px){.stats-grid{grid-template-columns:repeat(3,1fr);}.charts-2{grid-template-columns:1fr;}.games-row{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:640px){.stats-grid{grid-template-columns:repeat(2,1fr);}.hero{flex-direction:column;gap:16px;}.ai-card{flex-direction:column;}.ai-meters{flex-wrap:wrap;}}
+</style>
+</head>
+<body>
+<div class="grid-overlay"></div>
+<nav class="nav">
+  <a href="/student/dashboard" class="nav-logo">FUNMIYO SKILLQUEST</a>
+  <div class="nav-links">
+    <a href="/student/dashboard" class="nav-link active">📊 Dashboard</a>
+    <a href="/student/hub" class="nav-link">🎮 Play Games</a>
+    <span class="nav-user">Hi, <span id="navName">{{ full_name }}</span></span>
+    <a href="/logout" class="nav-link">Logout</a>
+  </div>
+</nav>
+
+<div class="page" id="mainPage">
+  <div class="spin"><div class="spinner"></div>Loading your stats...</div>
+</div>
+
+{% raw %}<script>
+Chart.defaults.color='#6080a0';Chart.defaults.font.family="'Nunito',sans-serif";Chart.defaults.borderColor='rgba(0,200,255,.06)';
+let charts={};
+function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+function pct(v){return v!=null?Math.round(v)+'%':'—';}
+function num(v){return Number(v||0).toLocaleString();}
+function esc(s){return(s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function fmtD(d){if(!d)return '—';try{return new Date(d).toLocaleDateString('en-IN',{month:'short',day:'numeric'});}catch(e){return d;}}
+function tryJ(s,d){try{return typeof s==='string'?JSON.parse(s):s||d;}catch(e){return d;}}
+
+const GROUP_MAP={
+  'Advanced':         {icon:'🚀',color:'#00ff88',desc:'Top performer — high accuracy & speed.'},
+  'Intermediate':     {icon:'⚡',color:'#00c8ff',desc:'Good balance of speed and accuracy.'},
+  'Slow but Accurate':{icon:'🎯',color:'#ffcc00',desc:'Careful solver — needs speed practice.'},
+  'Fast but Error-Prone':{icon:'💨',color:'#ff6600',desc:'Quick responder — work on accuracy.'},
+  'Needs Support':    {icon:'📚',color:'#ff4060',desc:'Needs more practice — keep going!'},
+  'Unclassified':     {icon:'🤖',color:'#6080a0',desc:'Play more sessions to get AI analysis.'},
+};
+
+async function loadData(){
+  try{
+    const r=await fetch('/api/student/overview');
+    const d=await r.json();
+    render(d);
+  }catch(e){
+    document.getElementById('mainPage').innerHTML='<div class="spin">Failed to load. Try refreshing.</div>';
+  }
+}
+
+function render(d){
+  const s=d.student||{}, a=d.analysis||{}, sessions=d.sessions||[], trend=d.trend||[];
+  const op_stats=d.op_stats||[], rt_stats=d.rt_stats||[], game_stats=d.game_stats||[];
+  const ann=d.announcements||[], gm=GROUP_MAP[s.group_label]||GROUP_MAP['Unclassified'];
+  const imp=tryJ(a.improvement_areas,[]);
+
+  document.getElementById('mainPage').innerHTML=`
+    <div class="hero">
+      <div class="hero-left">
+        <h1>Welcome back, ${esc(s.full_name||'Student')}! 👋</h1>
+        <p>${esc(s.roll_no||'')} · ${esc(s.grade||'KG')} ${esc(s.section||'')} · Group: <strong style="color:${gm.color}">${s.group_label||'Unclassified'}</strong></p>
+      </div>
+      <div class="hero-btns">
+        <a href="/student/hub" class="hero-btn primary">🎮 Play Now</a>
+      </div>
+    </div>
+
+    <div class="ai-card">
+      <div class="ai-icon">${gm.icon}</div>
+      <div class="ai-body">
+        <div class="ai-sub">AI Classification</div>
+        <div class="ai-name" style="color:${gm.color}">${s.group_label||'Unclassified'}</div>
+        <div class="ai-desc">${gm.desc}</div>
+      </div>
+      <div class="ai-meters">
+        <div class="ai-meter"><div class="ai-meter-val">${pct(a.accuracy_score)}</div><div class="ai-meter-lbl">Accuracy</div></div>
+        <div class="ai-meter"><div class="ai-meter-val">${pct(a.speed_score)}</div><div class="ai-meter-lbl">Speed</div></div>
+        <div class="ai-meter"><div class="ai-meter-val">${pct(a.consistency_score||0)}</div><div class="ai-meter-lbl">Consistency</div></div>
+      </div>
+      <div class="ai-rec">Recommended: <strong>${(a.recommended_difficulty||'easy').toUpperCase()}</strong></div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card"><span class="stat-icon">🎮</span><div class="stat-val">${s.total_sessions||0}</div><div class="stat-lbl">Sessions</div></div>
+      <div class="stat-card"><span class="stat-icon">🏆</span><div class="stat-val">${num(s.total_score||0)}</div><div class="stat-lbl">Total Score</div></div>
+      <div class="stat-card"><span class="stat-icon">🎯</span><div class="stat-val">${pct(s.avg_accuracy||0)}</div><div class="stat-lbl">Avg Accuracy</div></div>
+      <div class="stat-card"><span class="stat-icon">⚡</span><div class="stat-val">${(s.avg_reaction_time||0).toFixed(1)}s</div><div class="stat-lbl">Avg Reaction</div></div>
+      <div class="stat-card"><span class="stat-icon">📈</span><div class="stat-val">Lvl ${s.current_level||1}</div><div class="stat-lbl">Level</div></div>
+    </div>
+
+    <div class="sec-hdr"><div class="sec-ttl">Games Played</div><div class="sec-line"></div></div>
+    <div class="games-row" id="gamesRow"></div>
+
+    <div class="charts-2">
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#00c8ff"></span>Accuracy Trend</div>
+        <div class="chart-wrap"><canvas id="accChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#ff6600"></span>Score Per Session</div>
+        <div class="chart-wrap"><canvas id="scoreChart"></canvas></div>
+      </div>
+    </div>
+    <div class="charts-2">
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#00ff88"></span>Operator Performance</div>
+        <div class="chart-wrap"><canvas id="opChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#a855f7"></span>Skill Radar</div>
+        <div class="chart-wrap"><canvas id="radarChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="charts-2">
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#ff4060"></span>Areas to Improve</div>
+        <div id="impArea"></div>
+        <div style="margin-top:16px;"><div class="chart-title" style="margin-top:12px;"><span class="dot" style="--c:#00c8ff"></span>Operator Accuracy</div><div id="opBarsDiv"></div></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><span class="dot" style="--c:#ffcc00"></span>Announcements</div>
+        <div class="announce-list" id="annList"></div>
+      </div>
+    </div>
+
+    <div class="sec-hdr"><div class="sec-ttl">Recent Sessions</div><div class="sec-line"></div></div>
+    <div class="chart-card" style="overflow-x:auto;" id="sessTable"></div>
+  `;
+
+  // Game stat cards
+  const gameIcons={bubble:'🎯',blaster:'🚀',sprint:'🏃',boss:'👾'};
+  const gameNames={bubble:'Bubble Shooter',blaster:'Math Blaster',sprint:'Math Sprint',boss:'Boss Battle'};
+  const allGames=['bubble','blaster','sprint','boss'];
+  const gr=document.getElementById('gamesRow');
+  allGames.forEach(g=>{
+    const gs=game_stats.find(x=>x.game_type===g)||{};
+    const div=document.createElement('div');div.className='game-stat-card';
+    div.innerHTML=`<div class="game-stat-icon">${gameIcons[g]}</div>
+      <div class="game-stat-name">${gameNames[g]}</div>
+      <div class="game-stat-val">${num(gs.best||0)}</div>
+      <div class="game-stat-sub">Best Score · ${gs.played||0} played · ${pct(gs.acc||0)} acc</div>`;
+    gr.appendChild(div);
+  });
+
+  // Charts
+  const tLabels=trend.map(t=>t.date?t.date.slice(5):'');
+  const tAcc=trend.map(t=>Math.round(t.avg_acc||0));
+  dc('acc');charts['acc']=new Chart(document.getElementById('accChart'),{
+    type:'line',data:{labels:tLabels.length?tLabels:['—'],
+      datasets:[{label:'Accuracy %',data:tAcc.length?tAcc:[0],borderColor:'#00c8ff',
+        backgroundColor:'rgba(0,200,255,.07)',tension:.4,fill:true,pointRadius:3,borderWidth:2}]},
+    options:lineOpts(0,100)});
+
+  const sLabels=sessions.slice(0,10).reverse().map((_,i)=>'#'+(i+1));
+  const sVals=sessions.slice(0,10).reverse().map(s=>s.score||0);
+  const sCols=sessions.slice(0,10).reverse().map(s=>({bubble:'rgba(0,200,255,.7)',blaster:'rgba(255,102,0,.7)',sprint:'rgba(0,255,136,.7)',boss:'rgba(255,0,80,.7)'}[s.game_type]||'rgba(124,58,237,.7)'));
+  dc('score');charts['score']=new Chart(document.getElementById('scoreChart'),{
+    type:'bar',data:{labels:sLabels.length?sLabels:['—'],datasets:[{label:'Score',data:sVals.length?sVals:[0],backgroundColor:sCols,borderRadius:6,borderSkipped:false}]},
+    options:barOpts()});
+
+  const opLabels=op_stats.filter(o=>o.operator_used).map(o=>opName(o.operator_used));
+  const opCorr=op_stats.filter(o=>o.operator_used).map(o=>o.correct||0);
+  const opWrong=op_stats.filter(o=>o.operator_used).map(o=>(o.total||0)-(o.correct||0));
+  dc('op');charts['op']=new Chart(document.getElementById('opChart'),{
+    type:'bar',data:{labels:opLabels.length?opLabels:['No data'],
+      datasets:[{label:'Correct',data:opCorr,backgroundColor:'rgba(0,255,136,.7)',borderRadius:4,borderSkipped:false},
+                {label:'Wrong',data:opWrong,backgroundColor:'rgba(255,64,96,.6)',borderRadius:4,borderSkipped:false}]},
+    options:{...barOpts(),scales:{x:{stacked:true,grid:{color:'rgba(255,255,255,.03)'}},y:{stacked:true,grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6080a0'}}}}});
+
+  dc('radar');charts['radar']=new Chart(document.getElementById('radarChart'),{
+    type:'radar',data:{labels:['Accuracy','Speed','Consistency','Reaction','Streak'],
+      datasets:[{label:'You',data:[clamp(a.accuracy_score||0),clamp(a.speed_score||0),clamp(a.consistency_score||0),50,50],
+        backgroundColor:'rgba(0,200,255,.1)',borderColor:'#00c8ff',pointBackgroundColor:'#00c8ff',borderWidth:2,pointRadius:3}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{r:{grid:{color:'rgba(0,200,255,.07)'},angleLines:{color:'rgba(0,200,255,.07)'},
+        pointLabels:{color:'#6080a0',font:{size:10}},ticks:{display:false},suggestedMin:0,suggestedMax:100}}}});
+
+  // Improvement areas
+  const impDiv=document.getElementById('impArea');
+  if(imp.length){impDiv.innerHTML=imp.map(i=>`<div class="imp-item"><span>⚠️</span><span class="imp-text">${esc(i)}</span></div>`).join('');}
+  else{impDiv.innerHTML='<div class="imp-item"><span>✅</span><span class="imp-text">No major weaknesses! Keep it up.</span></div>';}
+
+  // Op bars
+  const opDefs=[{op:'+',color:'#00c8ff'},{op:'-',color:'#ff6600'},{op:'×',color:'#ffcc00'},{op:'÷',color:'#a855f7'}];
+  document.getElementById('opBarsDiv').innerHTML=opDefs.map(def=>{
+    const f=op_stats.find(o=>o.operator_used===def.op);
+    const acc=f?Math.round((f.correct||0)/(f.total||1)*100):0;
+    return `<div class="op-row">
+      <span class="op-sym" style="color:${def.color}">${def.op}</span>
+      <div class="op-bg"><div class="op-fill" style="width:${acc}%;background:${def.color};"></div></div>
+      <span class="op-pct">${f?acc+'%':'—'}</span></div>`;
+  }).join('');
+
+  // Announcements
+  const annDiv=document.getElementById('annList');
+  if(ann.length){annDiv.innerHTML=ann.map(a=>`<div class="announce-item">
+    <div class="announce-title">${esc(a.title)}</div>
+    <div class="announce-body">${esc(a.body)}</div>
+    <div class="announce-date">${fmtD(a.created_at)}</div></div>`).join('');}
+  else{annDiv.innerHTML='<div style="color:#6080a0;font-size:.85rem;padding:10px;">No announcements.</div>';}
+
+  // Sessions table
+  const gameIcons2={bubble:'🎯',blaster:'🚀',sprint:'🏃',boss:'👾'};
+  document.getElementById('sessTable').innerHTML=sessions.length?`
+    <table class="tbl"><thead><tr>
+      <th>Game</th><th>Date</th><th>Score</th><th>Accuracy</th><th>Difficulty</th><th>Time</th><th>Combo</th>
+    </tr></thead><tbody>
+    ${sessions.map(s=>`<tr>
+      <td><span class="tag ${s.game_type}">${gameIcons2[s.game_type]||'🎮'} ${s.game_type||'—'}</span></td>
+      <td style="color:#6080a0">${fmtD(s.started_at)}</td>
+      <td style="font-family:'Orbitron',sans-serif;color:#00c8ff;font-weight:700;">${num(s.score||0)}</td>
+      <td style="color:#00ff88">${s.accuracy!=null?Math.round(s.accuracy)+'%':'—'}</td>
+      <td style="color:${{'easy':'#00ff88','medium':'#ffcc00','hard':'#ff4060'}[s.difficulty]||'#6080a0'}">${(s.difficulty||'easy').toUpperCase()}</td>
+      <td style="color:#6080a0">${s.time_taken?Math.round(s.time_taken)+'s':'—'}</td>
+      <td style="font-family:'Orbitron',sans-serif;color:#ffcc00">x${s.combo_max||1}</td>
+    </tr>`).join('')}
+    </tbody></table>`:'<div style="color:#6080a0;padding:24px;text-align:center">No sessions yet. Start playing!</div>';
+}
+
+function lineOpts(min,max){return{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(2,8,24,.9)',borderColor:'rgba(0,200,255,.2)',borderWidth:1,titleColor:'#00c8ff',bodyColor:'#a0c0e0'}},scales:{x:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#6080a0'}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6080a0'},suggestedMin:min,suggestedMax:max}}};}
+function barOpts(){return{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#6080a0',usePointStyle:true}},tooltip:{backgroundColor:'rgba(2,8,24,.9)',borderColor:'rgba(0,200,255,.2)',borderWidth:1,titleColor:'#00c8ff',bodyColor:'#a0c0e0'}},scales:{x:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#6080a0'}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6080a0'}}}};}
+function opName(op){return{'+':'Addition','-':'Subtraction','×':'Multiply','÷':'Division','*':'Multiply','/':'Division'}[op]||op;}
+function clamp(v,a=0,b=100){return Math.min(b,Math.max(a,v));}
+
+loadData();
+</script>{% endraw %}
+</body>
+</html>

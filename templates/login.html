@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Funmiyo SkillQuest — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{min-height:100vh;background:#0d0f2b;font-family:'Nunito',sans-serif;color:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+/* Animated BG */
+.bg-blobs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);animation:blobFloat ease-in-out infinite;}
+@keyframes blobFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-30px) scale(1.08)}}
+.stars-dots{position:fixed;inset:0;pointer-events:none;z-index:0;}
+.dot{position:absolute;border-radius:50%;background:#fff;animation:twink var(--d) ease-in-out infinite;}
+@keyframes twink{0%,100%{opacity:.06}50%{opacity:.7}}
+/* Main */
+.wrap{position:relative;z-index:10;width:100%;max-width:480px;padding:16px;}
+/* Brand */
+.brand{text-align:center;margin-bottom:28px;}
+.brand-icon{font-size:3.5rem;display:block;margin-bottom:8px;animation:bounce 2s ease-in-out infinite;}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.brand-name{font-family:'Fredoka One',cursive;font-size:2.2rem;line-height:1;
+  background:linear-gradient(135deg,#ff6b35,#ffd700,#4ecdc4);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.brand-sub{font-size:.78rem;color:rgba(255,255,255,.45);letter-spacing:2px;text-transform:uppercase;margin-top:4px;}
+/* Card */
+.card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:28px;padding:32px;backdrop-filter:blur(20px);}
+/* Role tabs */
+.role-tabs{display:flex;gap:3px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:4px;margin-bottom:24px;}
+.role-tab{flex:1;padding:9px 4px;border-radius:12px;border:none;background:transparent;font-family:'Nunito',sans-serif;font-size:.72rem;font-weight:800;color:rgba(255,255,255,.4);cursor:pointer;transition:all .25s;text-align:center;}
+.role-tab.active{background:linear-gradient(135deg,rgba(255,107,53,.25),rgba(255,215,0,.15));color:#ffd700;border:1px solid rgba(255,215,0,.3);}
+.role-tab:hover:not(.active){color:rgba(255,255,255,.7);}
+/* Panels */
+.panel{display:none;} .panel.active{display:block;}
+/* Fields */
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:.72rem;font-weight:800;color:rgba(255,255,255,.5);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;}
+.field input,.field select{width:100%;background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.12);border-radius:14px;padding:13px 16px;color:#fff;font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:600;outline:none;transition:all .25s;}
+.field input::placeholder{color:rgba(255,255,255,.3);}
+.field input:focus,.field select:focus{border-color:#ff6b35;background:rgba(255,107,53,.08);box-shadow:0 0 0 4px rgba(255,107,53,.12);}
+.field select option{background:#1a1c3e;}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+/* Buttons */
+.btn-main{width:100%;padding:14px;border:none;border-radius:50px;font-family:'Fredoka One',cursive;font-size:1.1rem;cursor:pointer;transition:all .25s;margin-top:6px;position:relative;overflow:hidden;}
+.btn-main.orange{background:linear-gradient(135deg,#ff6b35,#ff9f43);color:#fff;box-shadow:0 6px 20px rgba(255,107,53,.4);}
+.btn-main.orange:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(255,107,53,.5);}
+.btn-main.loading{opacity:.6;pointer-events:none;}
+.btn-sec{width:100%;padding:12px;background:transparent;border:2px solid rgba(255,255,255,.15);border-radius:50px;color:rgba(255,255,255,.5);font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .25s;margin-top:6px;}
+.btn-sec:hover{border-color:#4ecdc4;color:#4ecdc4;}
+/* Separator */
+.sep{display:flex;align-items:center;gap:10px;margin:16px 0;color:rgba(255,255,255,.2);font-size:.75rem;}
+.sep::before,.sep::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.08);}
+/* Error */
+.err{color:#ff6b6b;font-size:.8rem;font-weight:700;padding:10px 14px;background:rgba(255,68,68,.08);border:1px solid rgba(255,68,68,.2);border-radius:12px;display:none;margin-top:10px;text-align:center;}
+/* Demo box */
+.demo-box{margin-top:20px;padding:14px 16px;background:rgba(78,205,196,.07);border:1px solid rgba(78,205,196,.2);border-radius:16px;}
+.demo-title{font-size:.65rem;font-weight:800;color:#4ecdc4;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.demo-item{padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;cursor:pointer;transition:all .2s;}
+.demo-item:hover{background:rgba(78,205,196,.12);border-color:rgba(78,205,196,.4);transform:translateY(-2px);}
+.demo-label{font-size:.78rem;font-weight:800;color:#fff;display:block;margin-bottom:2px;}
+.demo-creds{font-size:.68rem;color:rgba(255,255,255,.4);}
+.demo-hint{font-size:.62rem;color:#4ecdc4;display:block;margin-top:3px;font-weight:700;}
+/* Avatar picker */
+.avatar-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+.av-btn{width:44px;height:44px;border-radius:12px;border:2px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);font-size:1.4rem;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.av-btn.selected{border-color:#ffd700;background:rgba(255,215,0,.15);transform:scale(1.1);}
+.av-btn:hover:not(.selected){border-color:rgba(255,255,255,.35);}
+</style>
+</head>
+<body>
+<!-- Animated blobs -->
+<div class="bg-blobs">
+  <div class="blob" style="width:400px;height:400px;background:rgba(255,107,53,.12);top:-100px;left:-100px;animation-duration:8s;"></div>
+  <div class="blob" style="width:350px;height:350px;background:rgba(78,205,196,.1);bottom:-80px;right:-80px;animation-duration:10s;animation-delay:2s;"></div>
+  <div class="blob" style="width:250px;height:250px;background:rgba(255,215,0,.08);top:40%;left:60%;animation-duration:7s;animation-delay:1s;"></div>
+</div>
+<div class="stars-dots" id="starsDots"></div>
+
+<div class="wrap">
+  <div class="brand">
+    <span class="brand-icon">🎮</span>
+    <div class="brand-name">Funmiyo SkillQuest</div>
+    <div class="brand-sub">Gamified Math Testing for Young Minds</div>
+  </div>
+
+  <div class="card">
+    <div class="role-tabs" id="roleTabs">
+      <button class="role-tab active" data-role="student" onclick="switchRole('student')">🎮 Student</button>
+      <button class="role-tab" data-role="teacher"        onclick="switchRole('teacher')">📚 Teacher</button>
+      <button class="role-tab" data-role="parent"         onclick="switchRole('parent')">👨‍👩‍👧 Parent</button>
+      <button class="role-tab" data-role="admin"          onclick="switchRole('admin')">⚙️ Admin</button>
+    </div>
+
+    <!-- STUDENT PANEL -->
+    <div class="panel active" id="panel-student">
+      <div id="stu-login-sub">
+        <div class="field"><label>🎯 Student ID / Username</label>
+          <input id="s_user" type="text" placeholder="e.g. skq001" autocomplete="username"></div>
+        <div class="field"><label>🔒 Password</label>
+          <input id="s_pass" type="password" placeholder="Your secret password" autocomplete="current-password"></div>
+        <button class="btn-main orange" id="stuLoginBtn" onclick="doStudentLogin()">Let's Play! 🚀</button>
+        <div class="err" id="stuErr"></div>
+        <div class="sep">or</div>
+        <button class="btn-sec" onclick="showReg()">New Student? Join Here! 🌟</button>
+      </div>
+      <div id="stu-reg-sub" style="display:none">
+        <div class="field"><label>😊 Your Name</label>
+          <input id="r_name" type="text" placeholder="What's your name?"></div>
+        <div class="field"><label>🎫 Student ID</label>
+          <input id="r_roll" type="text" placeholder="e.g. SKQ007"></div>
+        <div class="row-2">
+          <div class="field"><label>📚 Grade</label>
+            <select id="r_grade">
+              <option value="">Pick grade</option>
+              <option value="KG">Kindergarten</option>
+              <option value="Grade 1">Grade 1</option>
+              <option value="Grade 2">Grade 2</option>
+              <option value="Grade 3">Grade 3</option>
+              <option value="Grade 4">Grade 4</option>
+              <option value="Grade 5">Grade 5</option>
+            </select>
+          </div>
+          <div class="field"><label>🏫 Section</label>
+            <select id="r_sec">
+              <option value="">Sec</option>
+              <option>A</option><option>B</option><option>C</option><option>D</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>🧒 Age</label>
+          <input id="r_age" type="number" min="3" max="12" placeholder="How old are you?"></div>
+        <div class="field"><label>🎨 Pick Your Avatar</label>
+          <div class="avatar-row">
+            <button class="av-btn selected" data-av="⭐" onclick="pickAv(this)">⭐</button>
+            <button class="av-btn" data-av="🚀" onclick="pickAv(this)">🚀</button>
+            <button class="av-btn" data-av="🦄" onclick="pickAv(this)">🦄</button>
+            <button class="av-btn" data-av="🐉" onclick="pickAv(this)">🐉</button>
+            <button class="av-btn" data-av="🧙" onclick="pickAv(this)">🧙</button>
+            <button class="av-btn" data-av="🦊" onclick="pickAv(this)">🦊</button>
+            <button class="av-btn" data-av="🐼" onclick="pickAv(this)">🐼</button>
+            <button class="av-btn" data-av="🦁" onclick="pickAv(this)">🦁</button>
+          </div>
+        </div>
+        <div class="field"><label>🔒 Password</label>
+          <input id="r_pass" type="password" placeholder="Make a secret password"></div>
+        <button class="btn-main orange" id="regBtn" onclick="doRegister()">Join the Quest! 🌟</button>
+        <div class="err" id="regErr"></div>
+        <div class="sep">or</div>
+        <button class="btn-sec" onclick="showLogin()">Already joined? Login!</button>
+      </div>
+    </div>
+
+    <!-- STAFF PANEL (teacher/parent/admin) -->
+    <div class="panel" id="panel-staff">
+      <div class="field">
+        <label id="staffLbl">👩‍🏫 Teacher Username</label>
+        <input id="l_user" type="text" placeholder="Enter username" autocomplete="username">
+      </div>
+      <div class="field"><label>🔒 Password</label>
+        <input id="l_pass" type="password" placeholder="Enter password" autocomplete="current-password">
+      </div>
+      <button class="btn-main orange" id="staffBtn" onclick="doStaffLogin()">Login →</button>
+      <div class="err" id="staffErr"></div>
+    </div>
+
+    <!-- Demo credentials -->
+    <div class="demo-box">
+      <div class="demo-title">🔑 Click to login instantly</div>
+      <div class="demo-grid" id="demoCreds"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Stars
+const sd = document.getElementById('starsDots');
+for(let i=0;i<100;i++){const s=document.createElement('div');s.className='dot';
+  s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;width:${Math.random()*2.5+.5}px;height:${Math.random()*2.5+.5}px;--d:${Math.random()*4+2}s;animation-delay:${Math.random()*6}s;`;
+  sd.appendChild(s);}
+
+const DEMO = {
+  student:[{label:'⭐ Aarav (KG)',   u:'skq001',p:'fun123'},{label:'🚀 Priya (Gr.1)',u:'skq002',p:'fun123'}],
+  teacher:[{label:'👩‍🏫 Ms. Priya',    u:'teacher1',p:'teacher123'},{label:'👨‍🏫 Mr. Rahul',u:'teacher2',p:'teacher123'}],
+  parent: [{label:'👨‍👩‍👧 Mrs. Arun',   u:'parent1', p:'parent123'},{label:'👩 Mrs. Sunita',u:'parent2',p:'parent123'}],
+  admin:  [{label:'⚙️ Admin',         u:'admin',   p:'admin123'}],
+};
+
+let currentRole = 'student';
+let selectedAvatar = '⭐';
+
+function switchRole(role){
+  currentRole = role;
+  document.querySelectorAll('.role-tab').forEach(t=>t.classList.toggle('active',t.dataset.role===role));
+  document.getElementById('panel-student').classList.toggle('active', role==='student');
+  document.getElementById('panel-staff').classList.toggle('active',   role!=='student');
+  const lbls={teacher:'👩‍🏫 Teacher Username',parent:'👨‍👩‍👧 Parent Username',admin:'⚙️ Admin Username'};
+  document.getElementById('staffLbl').textContent = lbls[role]||'Username';
+  document.getElementById('l_user').value='';
+  document.getElementById('l_pass').value='';
+  document.getElementById('staffErr').style.display='none';
+  renderDemo(role);
+}
+
+function renderDemo(role){
+  const creds=DEMO[role]||[];
+  document.getElementById('demoCreds').innerHTML=creds.map(d=>`
+    <div class="demo-item" onclick="quickLogin('${d.u}','${d.p}','${role}')">
+      <span class="demo-label">${d.label}</span>
+      <span class="demo-creds">${d.u} / ${d.p}</span>
+      <span class="demo-hint">▶ Click to enter!</span>
+    </div>`).join('');
+}
+
+async function quickLogin(u,p,role){
+  if(role==='student'){document.getElementById('s_user').value=u;document.getElementById('s_pass').value=p;}
+  else{document.getElementById('l_user').value=u;document.getElementById('l_pass').value=p;}
+  await sleep(100);
+  const btn = role==='student'?document.getElementById('stuLoginBtn'):document.getElementById('staffBtn');
+  btn.classList.add('loading'); btn.textContent='Loading...';
+  const r = await callLogin(u, p);
+  if(r.success){window.location.href='/home';}
+  else{
+    btn.classList.remove('loading');
+    btn.textContent = role==='student'?'Let\'s Play! 🚀':'Login →';
+    const errEl = role==='student'?document.getElementById('stuErr'):document.getElementById('staffErr');
+    showErr(errEl, r.error||'Oops! Try again 😊');
+  }
+}
+
+async function doStudentLogin(){
+  const btn=document.getElementById('stuLoginBtn'), err=document.getElementById('stuErr');
+  const u=document.getElementById('s_user').value.trim(), p=document.getElementById('s_pass').value.trim();
+  if(!u||!p){showErr(err,'Please fill in both fields! 😊');return;}
+  btn.classList.add('loading');btn.textContent='Loading...';
+  const r=await callLogin(u,p);
+  if(r.success){window.location.href='/home';}
+  else{showErr(err,r.error||'Wrong password! Try again 😊');btn.classList.remove('loading');btn.textContent='Let\'s Play! 🚀';}
+}
+
+async function doStaffLogin(){
+  const btn=document.getElementById('staffBtn'),err=document.getElementById('staffErr');
+  const u=document.getElementById('l_user').value.trim(),p=document.getElementById('l_pass').value.trim();
+  if(!u||!p){showErr(err,'Please fill in both fields!');return;}
+  btn.classList.add('loading');btn.textContent='Loading...';
+  const r=await callLogin(u,p);
+  if(r.success){window.location.href='/home';}
+  else{showErr(err,r.error||'Invalid credentials');btn.classList.remove('loading');btn.textContent='Login →';}
+}
+
+async function doRegister(){
+  const btn=document.getElementById('regBtn'),err=document.getElementById('regErr');
+  const data={full_name:document.getElementById('r_name').value.trim(),
+    roll_no:document.getElementById('r_roll').value.trim(),
+    grade:document.getElementById('r_grade').value,
+    section:document.getElementById('r_sec').value,
+    age:document.getElementById('r_age').value||'5',
+    password:document.getElementById('r_pass').value.trim(),
+    avatar:selectedAvatar};
+  for(const[k,v] of Object.entries(data)){if(!v){showErr(err,`Please fill in ${k.replace('_',' ')}! 😊`);return;}}
+  btn.classList.add('loading');btn.textContent='Joining...';
+  const r=await post('/api/auth/register',data);
+  if(r.success){window.location.href='/home';}
+  else{showErr(err,r.error||'Could not register');btn.classList.remove('loading');btn.textContent='Join the Quest! 🌟';}
+}
+
+function pickAv(el){
+  document.querySelectorAll('.av-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedAvatar=el.dataset.av;
+}
+function showReg(){document.getElementById('stu-login-sub').style.display='none';document.getElementById('stu-reg-sub').style.display='block';}
+function showLogin(){document.getElementById('stu-reg-sub').style.display='none';document.getElementById('stu-login-sub').style.display='block';}
+
+async function callLogin(u,p){return post('/api/auth/login',{username:u,password:p});}
+async function post(url,data){
+  try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});return await r.json();}
+  catch(e){return{success:false,error:'Connection error — is server running?'};}
+}
+function showErr(el,msg){el.textContent=msg;el.style.display='block';setTimeout(()=>el.style.display='none',4000);}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  if(currentRole==='student'){document.getElementById('stu-reg-sub').style.display!=='none'?doRegister():doStudentLogin();}
+  else doStaffLogin();
+});
+
+switchRole('student');
+</script>
+</body>
+</html>
