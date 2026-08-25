@@ -179,7 +179,7 @@ This project is licensed under the MIT License - see LICENSE file for details.
 **Shravni kale**
 - GitHub: [@shravnikale2](https://github.com/shravnikale2)
 
-**aakanksha06**
+**Aakanksha Sah**
 - GitHub: [@aakanksha06] (https://github.com/aakanksha06)
 
 
