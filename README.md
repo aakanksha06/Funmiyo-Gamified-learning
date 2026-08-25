@@ -39,7 +39,11 @@ An interactive, adaptive mathematics learning platform for elementary students (
 1. **Clone the repository**
    ```bash
    git clone https://github.com/aakanksha06/Funmiyo-Gamified-learning.git
+<<<<<<< HEAD
    cd Funmiyo-Gamified-learning
+=======
+   cd Funmiyo-SkillQuest
+>>>>>>> 58329c8f75fbbca045f2339ff59ff13765698f57
    ```
 
 2. **Create a virtual environment** (optional but recommended)
@@ -173,18 +177,6 @@ Contributions are welcome! Please:
 ## 📄 License
 
 This project is licensed under the MIT License - see LICENSE file for details.
-
-## 👨‍💻 Author
-
-**Shravni kale**
-- GitHub: [@shravnikale2](https://github.com/shravnikale2)
-
-## 📞 Support
-
-For issues, questions, or suggestions:
-- Open an issue on GitHub
-- Email: Shravnikale7@gmail.com
----
 
 **Happy Learning! 🎓✨**
 
