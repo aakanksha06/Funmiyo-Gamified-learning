@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     last_login TIMESTAMP,
     is_active INTEGER DEFAULT 1
 );
+
 CREATE TABLE IF NOT EXISTS schools (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -20,6 +21,7 @@ CREATE TABLE IF NOT EXISTS schools (
     is_active INTEGER DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 CREATE TABLE IF NOT EXISTS students (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER UNIQUE,
@@ -45,6 +47,7 @@ CREATE TABLE IF NOT EXISTS students (
     FOREIGN KEY(teacher_id) REFERENCES users(id),
     FOREIGN KEY(school_id) REFERENCES schools(id)
 );
+
 CREATE TABLE IF NOT EXISTS teachers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER UNIQUE NOT NULL,
@@ -53,6 +56,7 @@ CREATE TABLE IF NOT EXISTS teachers (
     FOREIGN KEY(user_id) REFERENCES users(id),
     FOREIGN KEY(school_id) REFERENCES schools(id)
 );
+
 CREATE TABLE IF NOT EXISTS game_sessions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     student_id INTEGER NOT NULL,
@@ -73,6 +77,7 @@ CREATE TABLE IF NOT EXISTS game_sessions (
     operators_used TEXT DEFAULT '{}',
     FOREIGN KEY(student_id) REFERENCES students(id)
 );
+
 CREATE TABLE IF NOT EXISTS action_logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     session_id INTEGER NOT NULL,
@@ -93,6 +98,7 @@ CREATE TABLE IF NOT EXISTS action_logs (
     score_delta INTEGER DEFAULT 0,
     extra_data TEXT DEFAULT '{}'
 );
+
 CREATE TABLE IF NOT EXISTS ai_analysis (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     student_id INTEGER NOT NULL,
@@ -108,6 +114,7 @@ CREATE TABLE IF NOT EXISTS ai_analysis (
     cluster_data TEXT DEFAULT '{}',
     FOREIGN KEY(student_id) REFERENCES students(id)
 );
+
 CREATE TABLE IF NOT EXISTS announcements (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_by INTEGER NOT NULL,
@@ -118,6 +125,7 @@ CREATE TABLE IF NOT EXISTS announcements (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(created_by) REFERENCES users(id)
 );
+
 CREATE TABLE IF NOT EXISTS teacher_notes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     teacher_id INTEGER NOT NULL,
