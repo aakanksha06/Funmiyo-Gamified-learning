@@ -38,8 +38,8 @@ An interactive, adaptive mathematics learning platform for elementary students (
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/shravnikale2/Funmiyo-SkillQuest.git
-   cd Funmiyo-SkillQuest
+   git clone https://github.com/aakanksha06/Funmiyo-Gamified-learning.git
+   cd Funmiyo-Gamified-learning
    ```
 
 2. **Create a virtual environment** (optional but recommended)
